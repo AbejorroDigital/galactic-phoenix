@@ -11,11 +11,11 @@
   },
   "shield_battery": {
     "type": "heal",
-    "amount": 30,
+    "amount": 100,
     "sprite": "powerup_orb",
     "tint": "0x00ffff",
     "display_name": "Shield Battery",
-    "description": "Recupera 30 HP"
+    "description": "Recupera 100 HP"
   },
   "PKM": {
     "type": "weapon",
