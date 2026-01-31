@@ -139,6 +139,14 @@ export default class GameScene extends Phaser.Scene {
                 this.pauseGame();
             }
         });
+
+        // Fix: Pausar automáticamente si el usuario cambia de pestaña o minimiza
+        this.onGameBlur = () => {
+            if (!this.isGameOver && !this.scene.isPaused(SCENES.GAME)) {
+                this.pauseGame();
+            }
+        };
+        this.game.events.on('blur', this.onGameBlur);
     }
 
     /**
@@ -444,6 +452,10 @@ export default class GameScene extends Phaser.Scene {
         // Limpieza al cerrar la escena
         if (this.audioManager) {
             this.audioManager.destroy();
+        }
+        // Limpiar evento global para evitar duplicados al reiniciar
+        if (this.onGameBlur) {
+            this.game.events.off('blur', this.onGameBlur);
         }
     }
 }
