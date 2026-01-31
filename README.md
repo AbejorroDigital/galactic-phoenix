@@ -2,6 +2,8 @@
 
 **Galactic Phoenix** es un videojuego de naves *shoot 'em up* de scroll horizontal, inspirado en clásicos como *Gradius*. Desarrollado con **Phaser 3** y JavaScript moderno (ES6+), destaca por su arquitectura escalable y basada en datos (*Data-Driven*), donde niveles, enemigos y jefes se definen en archivos JSON.
 
+[Juega Galactic Phoenix aquí](https://tu-juego-desplegado.com)
+
 ## 📜 Tabla de Contenidos
 - [Acerca del Proyecto](#-acerca-del-proyecto)
 - [Características Principales](#características-principales)
