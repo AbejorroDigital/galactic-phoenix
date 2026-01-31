@@ -1,0 +1,36 @@
+{
+  "speed_boost": {
+    "type": "stat_mod",
+    "stat": "speed",
+    "value": 100,
+    "duration": 5000,
+    "sprite": "powerup_orb",
+    "tint": "0x00ff00",
+    "display_name": "Speed Boost",
+    "description": "Aumenta velocidad temporalmente"
+  },
+  "shield_battery": {
+    "type": "heal",
+    "amount": 30,
+    "sprite": "powerup_orb",
+    "tint": "0x00ffff",
+    "display_name": "Shield Battery",
+    "description": "Recupera 30 HP"
+  },
+  "PKM": {
+    "type": "weapon",
+    "weapon_id": "plasma_repeater",
+    "sprite": "powerup_box",
+    "tint": "0xff00ff",
+    "display_name": "PKM",
+    "description": "Repetidor de Plasma de alta cadencia"
+  },
+  "extra_life": {
+    "type": "life",
+    "amount": 1,
+    "sprite": "vida",
+    "tint": "0xffff00",
+    "display_name": "Extra Life",
+    "description": "+1 Vida"
+  }
+}

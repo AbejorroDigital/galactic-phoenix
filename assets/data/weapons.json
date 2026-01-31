@@ -1,0 +1,54 @@
+{
+  "drop_rates": {
+    "base_chance": 0.15,
+    "luck_multiplier": 0.01
+  },
+  "projectiles": {
+    "basic_cannon": {
+      "damage": 100,
+      "speed": 400,
+      "sprite": "shot-hero",
+      "type": "fisico",
+      "scale": 1
+    },
+    "plasma_repeater": {
+      "damage": 5,
+      "speed": 300,
+      "sprite": "shot-special",
+      "type": "plasma",
+      "scale": 0.8
+    },
+    "plasma_ball": {
+      "damage": 200,
+      "speed": 200,
+      "sprite": "shot-special2",
+      "type": "plasma",
+      "scale": 1.1
+    },
+    "enemy_laser": {
+      "damage": 200,
+      "speed": 250,
+      "sprite": "shot-enemy",
+      "type": "laser",
+      "scale": 1,
+      "aimed": true
+    },
+    "ion_disruptor": {
+      "damage": 150,
+      "speed": 300,
+      "sprite": "shot-special2",
+      "type": "ionico",
+      "scale": 1.2
+    }
+  },
+  "powerups": {
+    "PKM": {
+      "type": "weapon",
+      "weapon_id": "plasma_repeater",
+      "ammo": 50,
+      "sprite": "powerup_box",
+      "tint": "0xff00ff",
+      "description": "Equipa Repetidor de Plasma"
+    }
+  }
+}

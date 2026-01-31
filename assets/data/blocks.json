@@ -1,0 +1,210 @@
+{
+  "scout_wave": [
+    {
+      "time": 500,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 900,
+      "enemyId": "interceptor_alpha",
+      "y": 300
+    },
+    {
+      "time": 1300,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    },
+    {
+      "time": 1700,
+      "enemyId": "interceptor_alpha",
+      "y": 200
+    },
+    {
+      "time": 2100,
+      "enemyId": "interceptor_alpha",
+      "y": 400
+    }
+  ],
+  "heavy_assault": [
+    {
+      "time": 500,
+      "enemyId": "heavy_tank_omega",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 1500,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    },
+    {
+      "time": 2500,
+      "enemyId": "assault_drone_beta",
+      "y": 200
+    },
+    {
+      "time": 2500,
+      "enemyId": "assault_drone_beta",
+      "y": 400
+    }
+  ],
+  "v_formation": [
+    {
+      "time": 500,
+      "enemyId": "interceptor_alpha",
+      "y": 300
+    },
+    {
+      "time": 800,
+      "enemyId": "interceptor_alpha",
+      "y": 200
+    },
+    {
+      "time": 800,
+      "enemyId": "interceptor_alpha",
+      "y": 400
+    },
+    {
+      "time": 1100,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 1100,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    },
+    {
+      "time": 1500,
+      "enemyId": "assault_drone_beta",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 150
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 450
+    }
+  ],
+  "tank_wall": [
+    {
+      "time": 500,
+      "enemyId": "heavy_tank_omega",
+      "y": 150
+    },
+    {
+      "time": 500,
+      "enemyId": "heavy_tank_omega",
+      "y": 450
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 50
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 550
+    }
+  ],
+  "plasma_rain": [
+    {
+      "time": 500,
+      "enemyId": "assault_drone_beta",
+      "y": 50
+    },
+    {
+      "time": 1000,
+      "enemyId": "heavy_tank_omega",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "assault_drone_beta",
+      "y": 550
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 200
+    },
+    {
+      "time": 2500,
+      "enemyId": "assault_drone_beta",
+      "y": 400
+    },
+    {
+      "time": 3000,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 3000,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    }
+  ],
+  "ambush_cross": [
+    {
+      "time": 500,
+      "enemyId": "assault_drone_beta",
+      "y": 100
+    },
+    {
+      "time": 500,
+      "enemyId": "assault_drone_beta",
+      "y": 500
+    },
+    {
+      "time": 1200,
+      "enemyId": "heavy_tank_omega",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 50
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "interceptor_alpha",
+      "y": 550
+    }
+  ],
+  "boss_encounter_1": [
+    {
+      "time": 2000,
+      "bossId": "void_reaver",
+      "isBoss": true,
+      "y": 300
+    }
+  ],
+  "boss_encounter_2": [
+    {
+      "time": 2000,
+      "bossId": "nebula_titan",
+      "isBoss": true,
+      "y": 300
+    }
+  ]
+}

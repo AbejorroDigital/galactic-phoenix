@@ -1,0 +1,29 @@
+{
+  "level_1": {
+    "name": "Asteroid Field",
+    "background": "bg_block",
+    "bg_tile_speed": 2,
+    "music": "level1_music",
+    "intro_music": "intro_music",
+    "sequence": [
+      "scout_wave",
+      "heavy_assault",
+      "v_formation",
+      "tank_wall",
+      "boss_encounter_1"
+    ]
+  },
+  "level_2": {
+    "name": "Void Expanse",
+    "background": "bg_block2",
+    "bg_tile_speed": 3,
+    "music": "level2_music",
+    "sequence": [
+      "plasma_rain",
+      "ambush_cross",
+      "v_formation",
+      "heavy_assault",
+      "boss_encounter_2"
+    ]
+  }
+}

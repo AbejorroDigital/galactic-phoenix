@@ -1,0 +1,64 @@
+{
+  "bosses": {
+    "void_reaver": {
+      "name": "Void Reaver",
+      "sprite": "boss_1",
+      "health": 3000,
+      "hp": 3000,
+      "speed": 80,
+      "behavior": "vertical_bounce",
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.8,
+        "plasma": 1.2,
+        "fisico": 0.6
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "enemy_laser",
+          "fire_rate": 800
+        },
+        {
+          "hp_threshold": 0.5,
+          "weapon": "ion_disruptor",
+          "fire_rate": 500
+        }
+      ]
+    },
+    "nebula_titan": {
+      "name": "Nebula Titan",
+      "sprite": "boss_2",
+      "health": 3500,
+      "hp": 3500,
+      "speed": 60,
+      "behavior": "figure_eight",
+      "visual_scale": 1.2,
+      "hitbox_scale": 0.75,
+      "resistances": {
+        "laser": 0.7,
+        "plasma": 0.5,
+        "fisico": 0.9,
+        "ionico": 1.5
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "plasma_ball",
+          "fire_rate": 1000
+        },
+        {
+          "hp_threshold": 0.6,
+          "weapon": "enemy_laser",
+          "fire_rate": 700
+        },
+        {
+          "hp_threshold": 0.3,
+          "weapon": "ion_disruptor",
+          "fire_rate": 400
+        }
+      ]
+    }
+  }
+}

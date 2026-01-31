@@ -1,0 +1,47 @@
+{
+  "enemies": {
+    "interceptor_alpha": {
+      "sprite": "enemy1",
+      "health": 20,
+      "speed": 150,
+      "score": 100,
+      "weapon": "enemy_laser",
+      "pattern": "sine_wave",
+      "fire_rate": 2000,
+      "visual_scale": 0.4,
+      "resistances": {
+        "laser": 1.0,
+        "fisico": 1.0
+      }
+    },
+    "assault_drone_beta": {
+      "sprite": "enemy2",
+      "health": 30,
+      "speed": 50,
+      "score": 200,
+      "weapon": "plasma_ball",
+      "pattern": "zigzag",
+      "fire_rate": 1500,
+      "visual_scale": 0.5,
+      "resistances": {
+        "laser": 0.8,
+        "fisico": 1.2
+      }
+    },
+    "heavy_tank_omega": {
+      "sprite": "enemy3",
+      "health": 40,
+      "speed": 60,
+      "score": 500,
+      "weapon": "enemy_laser",
+      "pattern": "linear",
+      "fire_rate": 1000,
+      "visual_scale": 0.6,
+      "resistances": {
+        "laser": 0.5,
+        "fisico": 0.7,
+        "plasma": 0.8
+      }
+    }
+  }
+}

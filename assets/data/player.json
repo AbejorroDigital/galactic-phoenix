@@ -1,0 +1,27 @@
+{
+  "player": {
+    "name": "Galactic Phoenix",
+    "sprite": "ship",
+    "lives": 5,
+    "speed": 300,
+    "visual_scale": 0.8,
+    "luck": 15,
+    "fire_rate": 250,
+    "max_hp": 1000,
+    "hp": 1000,
+    "base_shields": 100,
+    "invulnerability_time": 1500,
+    "spawn_position": {
+      "x": 100,
+      "y": 300
+    },
+    "resistances": {
+      "fisico": 1.0,
+      "laser": 0.8,
+      "ionico": 1.5,
+      "plasma": 1.2,
+      "espiritual": 0.5
+    },
+    "starting_weapon": "basic_cannon"
+  }
+}
