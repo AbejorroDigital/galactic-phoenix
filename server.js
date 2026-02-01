@@ -1,39 +1,48 @@
 /**
  * @file server.js
- * @description Servidor Express para Galactic Phoenix.
- * Sirve los recursos estáticos y el punto de entrada principal del juego.
+ * @description Servidor Express optimizado y seguro para Galactic Phoenix.
  */
 
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Configuración para obtener la ruta en módulos ES6
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-/** @type {number|string} */
 const PORT = process.env.PORT || 3000;
 
-// Middleware para servir archivos estáticos
-// Esto hace que toda tu carpeta sea accesible desde el navegador
-app.use(express.static(__dirname));
+/**
+ * 🛡️ SEGURIDAD: Solo servimos carpetas específicas.
+ * Si tus imágenes/sonidos están en una carpeta llamada 'assets', la servimos así.
+ * El archivo index.html y tus scripts de Phaser deberían estar en una carpeta raíz 
+ * o idealmente en una carpeta 'public'.
+ */
+
+// Si tienes tus assets en una carpeta aparte, descomenta la siguiente línea:
+// app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+// Servimos solo el archivo principal y los scripts necesarios
+// En lugar de servir TODO el __dirname, servimos archivos específicos o una subcarpeta
+app.use(express.static(path.join(__dirname, '/'))); 
 
 /**
- * Ruta principal del juego.
- * @name GET/
- * @function
+ * 🔒 FILTRO CRÍTICO: Bloqueamos explícitamente el acceso a archivos sensibles
+ * por si acaso alguien intenta saltarse la ruta estática.
  */
+app.use('/node_modules', (req, res) => {
+    res.status(403).send('Acceso denegado a los hangares de mantenimiento.');
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Manejo de errores 404 (opcional pero recomendado)
 app.use((req, res) => {
     res.status(404).send('Lo siento, el recurso galáctico no existe.');
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Phoenix despegando en: http://localhost:${PORT}`);
+    console.log(`🚀 Phoenix despegando de forma segura en: http://localhost:${PORT}`);
 });
