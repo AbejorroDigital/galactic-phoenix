@@ -77,14 +77,14 @@ export default class BootScene extends Phaser.Scene {
         this.load.image('enemy3', 'assets/sprites/enemy3.png');
 
         // 3. --- AUDIO ---
-        this.load.audio('intro_music', 'assets/sound/intro.mp3');
-        this.load.audio('level1_music', 'assets/sound/level1.mp3');
-        this.load.audio('level2_music', 'assets/sound/level2.mp3');
-        this.load.audio('sfx_shot', 'assets/sound/shot.mp3');
-        this.load.audio('sfx_enemy_explosion', 'assets/sound/enemy-explosion.mp3');
-        this.load.audio('sfx_boss_explosion', 'assets/sound/boss-explosion.mp3');
-        this.load.audio('sfx_gameover', 'assets/sound/gameover.mp3');
-        this.load.audio('sfx_pickup', 'assets/sound/shot.mp3'); // Fallback if pickup not found
+        this.load.audio('intro_music', 'assets/sound/intro.ogg');
+        this.load.audio('level1_music', 'assets/sound/level1.ogg');
+        this.load.audio('level2_music', 'assets/sound/level2.ogg');
+        this.load.audio('sfx_shot', 'assets/sound/shot.ogg');
+        this.load.audio('sfx_enemy_explosion', 'assets/sound/enemy-explosion.ogg');
+        this.load.audio('sfx_boss_explosion', 'assets/sound/boss-explosion.ogg');
+        this.load.audio('sfx_gameover', 'assets/sound/gameover.ogg');
+        this.load.audio('sfx_pickup', 'assets/sound/shot.ogg'); // Fallback if pickup not found
     }
 
     /**
