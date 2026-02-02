@@ -29,11 +29,20 @@ export default class DamageSystem {
             ? resistances[damageType]
             : 1.0;
 
+        // Definimos la función de azar seguro (puedes colocarla también fuera de este bloque)
+        const secureRandom = () => {
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            // Dividimos por 2^32 para obtener un valor entre 0 y 1 (similar a Math.random)
+            return array[0] / 4294967296; 
+        };
+
         let finalDamage = safeBaseDamage * multiplier;
         let isCritical = false;
 
         // Sistema de Suerte: Probabilidad de Crítico (luck 10 = 5% chance)
-        if (Math.random() * 100 < (luck * 0.5)) {
+        // Sustituimos Math.random() por nuestra nueva función secureRandom()
+        if (secureRandom() * 100 < (luck * 0.5)) {
             finalDamage *= 2;
             isCritical = true;
         }
