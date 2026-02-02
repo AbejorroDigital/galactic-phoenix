@@ -100,9 +100,10 @@ export default class Boss extends Entity {
         const phases = this.config.phases;
         if (!phases || phases.length === 0) return;
 
+        // Añadimos el primer elemento como valor inicial (el 'prev' por defecto)
         const currentPhase = phases.reduce((prev, curr) => {
             return (hpPercent <= curr.hp_threshold) ? curr : prev;
-        });
+        }, phases[0]); // <--- Este es el valor inicial
 
         if (time > this.fireTimer) {
             this.shoot(currentPhase.weapon);
