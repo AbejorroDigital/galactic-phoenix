@@ -119,7 +119,7 @@ export default class AudioManager {
     }
 
     /**
-     * Alterna el silencio (mute) para todo el audio gestionado por este gestor.
+     * Alterna el silencio (mute) para la totalidad del audio gestionado por este gestor.
      * @returns {boolean} El nuevo estado de silencio.
      */
     toggleMute() {
