@@ -1,7 +1,7 @@
 import { EVENTS } from '../core/Constants.js';
 import Entity from './Entity.js';
-import PlayerVFX from './PlayerVFX.js';
 import PlayerHealth from './PlayerHealth.js';
+import PlayerVFX from './PlayerVFX.js';
 
 export default class Player extends Entity {
     constructor(scene, x, y) {
@@ -81,21 +81,22 @@ export default class Player extends Entity {
     applyBaseDamage(stats) { super.takeDamage(stats); }
 
     respawn() {
-        this.hp = this.maxHp;
-        this.isDead = false;
-        this.setActive(true);
-        this.setVisible(true);
-        if (this.body) this.body.enable = true;
+    this.hp = this.maxHp;
+    this.isDead = false;
+    this.canShoot = true; // <--- AÑADE ESTA LÍNEA AQUÍ
+    this.setActive(true);
+    this.setVisible(true);
+    if (this.body) this.body.enable = true;
 
-        const playerData = this.scene.cache.json.get('player');
-        const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
-        this.setPosition(spawn.x, spawn.y);
+    const playerData = this.scene.cache.json.get('player');
+    const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
+    this.setPosition(spawn.x, spawn.y);
 
-        this.vfx.startEngine();
-        this.setInvulnerable(3000);
-        this.emitStatus();
-        this.scene.events.emit(EVENTS.PLAYER_HEAL, { current: this.hp, max: this.maxHp });
-    }
+    this.vfx.startEngine();
+    this.setInvulnerable(3000);
+    this.emitStatus();
+    this.scene.events.emit(EVENTS.PLAYER_HEAL, { current: this.hp, max: this.maxHp });
+}
 
     setInvulnerable(duration) {
         this.isInvulnerable = true;
