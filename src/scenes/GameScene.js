@@ -96,7 +96,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Crear Jugador
         this.player = new Player(this, spawn.x, spawn.y);
-
+        this.player.canShoot = true;
         // Lanzar UI después de crear al jugador
         if (!this.scene.isActive(SCENES.UI)) {
             this.scene.launch(SCENES.UI);
