@@ -185,53 +185,38 @@ export default class GameScene extends Phaser.Scene {
      * Muestra la pantalla de Game Over y detiene la lógica del juego.
      */
     handleGameOver() {
-        if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-            window.DEBUG_LOGGER.log('game', '=== handleGameOver() CALLED ===');
-        }
+    if (this.isGameOver) return;
 
-        if (this.isGameOver) {
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.log('game', 'Already in game over state, returning');
-            }
-            return;
-        }
+    this.isGameOver = true;
+    
+    // 1. Detener el mundo físico y el scroll
+    this.physics.pause();
+    this.bgScrollSpeed = 0;
 
-        try {
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.log('game', 'Setting isGameOver = true');
-            }
-            this.isGameOver = true;
-
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.log('game', 'Pausing physics');
-            }
-            if (this.physics && this.physics.pause) {
-                this.physics.pause();
-            }
-
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.log('game', 'Stopping level manager');
-            }
-            if (this.levelManager) {
-                this.levelManager.isLevelRunning = false;
-            }
-
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.log('game', 'Fading out audio');
-            }
-            if (this.audioManager) {
-                if (this.audioManager.stopMusic) this.audioManager.stopMusic(500);
-                else if (this.audioManager.fadeOutMusic) this.audioManager.fadeOutMusic(500);
-            }
-
-            // Emitir evento de Game Over (UIScene lo manejará)
-            this.scene.launch(SCENES.UI, { gameOver: true });
-        } catch (e) {
-            if (typeof window !== 'undefined' && window.DEBUG_LOGGER) {
-                window.DEBUG_LOGGER.logCriticalError('handleGameOver', e);
-            }
-        }
+    // 2. Desactivar al jugador por completo para evitar respawns fantasma
+    if (this.player) {
+        this.player.setActive(false);
+        this.player.setVisible(false);
+        if (this.player.body) this.player.body.enable = false;
+        // Importante: cancelar cualquier temporizador de respawn pendiente
+        this.time.removeAllEvents(); 
     }
+
+    if (this.levelManager) this.levelManager.isLevelRunning = false;
+    
+    // 3. Audio: Detener música y lanzar efecto de derrota
+    if (this.audioManager) {
+        this.audioManager.stopMusic(500);
+        this.audioManager.playSFX('sfx_gameover', { volume: 0.8 });
+    }
+
+    // 4. Comunicación con la UI
+    // En lugar de launch (que puede fallar si ya está activa), usamos events
+    this.events.emit('SHOW_GAME_OVER_PANEL'); 
+    
+    // O si prefieres mantener el sistema de paso de datos, asegúrate de que UIScene escuche 'wake'
+    this.scene.launch(SCENES.UI, { gameOver: true });
+}
 
     /**
      * Configura el fondo con tiles animados.
