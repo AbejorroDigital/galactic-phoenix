@@ -4,36 +4,44 @@ import SettingsManager from '../core/SettingsManager.js';
 /**
  * @class BootScene
  * @extends Phaser.Scene
- * @description El punto de entrada del juego. Responsable de precargar todos los recursos (assets),
- * incluyendo archivos JSON de datos, sprites y archivos de audio. Muestra una barra de progreso durante la carga.
+ * @description Punto de entrada. Precarga assets y prepara el motor de configuración.
  */
 export default class BootScene extends Phaser.Scene {
     constructor() {
         super(SCENES.BOOT);
     }
 
-    /**
-     * Método del ciclo de vida de Phaser. Maneja la precarga de recursos y la interfaz de usuario de progreso.
-     */
     preload() {
-        // ... (lógica de precarga igual)
         const { width, height } = this.cameras.main;
 
-        // --- Interfaz de Carga ---
+        // --- Interfaz de Carga "Phoenix Style" ---
+        const guiColor = 0x00f2ff; // Cian neón
+        
         const progressBox = this.add.graphics()
-            .fillStyle(0x0b0e14, 0.8)
+            .fillStyle(0x0b0e14, 0.9)
+            .lineStyle(2, guiColor, 0.5)
+            .strokeRect(width / 2 - 162, height / 2 - 27, 324, 54)
             .fillRect(width / 2 - 160, height / 2 - 25, 320, 50);
 
         const progressBar = this.add.graphics();
+        
+        const loadingText = this.make.text({
+            x: width / 2,
+            y: height / 2 - 50,
+            text: 'INITIALIZING SYSTEMS...',
+            style: { font: '14px monospace', fill: '#00f2ff' }
+        }).setOrigin(0.5);
 
         this.load.on('progress', (value) => {
             progressBar.clear()
-                .fillStyle(0x00f2ff, 1)
+                .fillStyle(guiColor, 1)
                 .fillRect(width / 2 - 150, height / 2 - 15, 300 * value, 30);
+            loadingText.setText(`SYNCING DATA: ${Math.round(value * 100)}%`);
         });
 
+        // Manejo de errores de carga
         this.load.on('loaderror', (file) => {
-            console.warn(`🚨 Error en radar: No se encontró el asset ${file.src}`);
+            console.error(`🚨 Fallo crítico en: ${file.src}`);
         });
 
         // 1. --- DATA CORE ---
@@ -45,58 +53,53 @@ export default class BootScene extends Phaser.Scene {
         this.load.json('powerups', 'assets/data/powerups.json');
         this.load.json('bosses', 'assets/data/bosses.json');
 
-        // 2. --- SPRITES ---
+        // 2. --- SPRITES & FX ASSETS ---
+        // Fondos
         this.load.image('bg_intro', 'assets/sprites/bg-intro.png');
         this.load.image('bg_gameover', 'assets/sprites/bg-gameover.png');
-        this.load.image('bg_block', 'assets/sprites/bg-block.png');
-        this.load.image('bg_block2', 'assets/sprites/bg-block2.png');
-
-        // Bosses
-        this.load.image('boss_1', 'assets/sprites/boss_void_reaver.png');
-        this.load.image('boss_2', 'assets/sprites/boss_nebula_titan.png');
-        this.load.image('boss_void_reaver', 'assets/sprites/boss_void_reaver.png');
-        this.load.image('boss_nebula_titan', 'assets/sprites/boss_nebula_titan.png');
-
-        // Projectiles
-        this.load.image('shot-hero', 'assets/sprites/shot.png');
-        this.load.image('shot-enemy', 'assets/sprites/shot-enemy.png');
-        this.load.image('shot-special', 'assets/sprites/shot-special.png');
-        this.load.image('shot-special2', 'assets/sprites/shot-special2.png');
-
-        // Effects & UI
-        this.load.image('flare', 'assets/sprites/flare.png');
-        this.load.image('vida', 'assets/sprites/vida.png');
-        this.load.image('powerup_orb', 'assets/sprites/powerup_orb.png');
-        this.load.image('powerup_box', 'assets/sprites/powerup_box.png');
-
-        // Entities - Using images instead of spritesheets if they aren't animated yet, 
-        // but keeping keys as expected by other classes.
+        
+        // Entidades
         this.load.image('ship', 'assets/sprites/ship.png');
         this.load.image('enemy1', 'assets/sprites/enemy1.png');
         this.load.image('enemy2', 'assets/sprites/enemy2.png');
         this.load.image('enemy3', 'assets/sprites/enemy3.png');
 
+        // Bosses
+        this.load.image('boss_1', 'assets/sprites/boss_void_reaver.png');
+        this.load.image('boss_2', 'assets/sprites/boss_nebula_titan.png');
+
+        // Projectiles
+        this.load.image('shot-hero', 'assets/sprites/shot.png');
+        this.load.image('shot-enemy', 'assets/sprites/shot-enemy.png');
+
+        // FX Engine Necessities
+        this.load.image('flare', 'assets/sprites/flare.png');
+        this.load.image('shield_aura', 'assets/sprites/vida.png'); // Reutilizando para el aura de escudo
+        this.load.image('particle_smoke', 'assets/sprites/flare.png'); // Para el motor dañado
+
+        // UI
+        this.load.image('vida', 'assets/sprites/vida.png');
+        this.load.image('powerup_orb', 'assets/sprites/powerup_orb.png');
+
         // 3. --- AUDIO ---
         this.load.audio('intro_music', 'assets/sound/intro.ogg');
         this.load.audio('level1_music', 'assets/sound/level1.ogg');
-        this.load.audio('level2_music', 'assets/sound/level2.ogg');
         this.load.audio('sfx_shot', 'assets/sound/shot.ogg');
         this.load.audio('sfx_enemy_explosion', 'assets/sound/enemy-explosion.ogg');
-        this.load.audio('sfx_boss_explosion', 'assets/sound/boss-explosion.ogg');
-        this.load.audio('sfx_gameover', 'assets/sound/gameover.ogg');
-        this.load.audio('sfx_pickup', 'assets/sound/shot.ogg'); // Fallback if pickup not found
+        this.load.audio('sfx_player_explode', 'assets/sound/boss-explosion.ogg'); // Usado en PlayerHealth
     }
 
-    /**
-     * Método del ciclo de vida de Phaser. Transiciona a MenuScene una vez finalizada la carga.
-     */
     create() {
-        console.log("🚀 Todos los sistemas cargados. Iniciando secuencia...");
+        console.log("🚀 Phoenix Engine: Online. Procediendo al menú.");
 
         // Inicializar Gestor de Configuración
         this.game.settings = new SettingsManager(this.game);
         this.game.settings.applySettings();
 
-        this.scene.start(SCENES.MENU); // CHANGED: Start at menu instead of game
+        // Pequeño efecto de desvanecimiento antes de cambiar de escena
+        this.cameras.main.fadeOut(500, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start(SCENES.MENU);
+        });
     }
 }
