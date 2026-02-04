@@ -1,5 +1,6 @@
 import { DEPTH, EVENTS, SCENES } from '../core/Constants.js';
-import ExplosionEffect from '../effects/ExplosionEffect.js';
+// import ExplosionEffect from '../effects/ExplosionEffect.js'; // REEMPLAZADO POR FX ENGINE
+import GalacticPhoenixFX from '../effects/GalacticPhoenixFX.js'; // NUEVO MOTOR FX
 import Boss from '../entities/Boss.js';
 import Enemy from '../entities/Enemy.js';
 import Player from '../entities/Player.js';
@@ -8,25 +9,11 @@ import Projectile from '../entities/Projectile.js';
 import AudioManager from '../managers/AudioManager.js';
 import LevelManager from '../managers/LevelManager.js';
 
-
 /**
  * @class GameScene
  * @extends Phaser.Scene
  * @description La escena principal de juego para Galactic Phoenix.
- * Maneja el bucle del juego, las interacciones entre entidades y las transiciones de nivel.
- * 
- * @fires EVENTS.ENEMY_DESTROYED
- * @fires EVENTS.LEVEL_FINISHED
- * @fires EVENTS.GAME_OVER
- * @listens EVENTS.LEVEL_FINISHED
- * @listens EVENTS.ENEMY_DESTROYED
- * @listens EVENTS.GAME_OVER
- * 
- * @example
- * // En la configuración del juego
- * const config = {
- *     scene: [BootScene, MenuScene, GameScene, UIScene]
- * };
+ * Integra el motor GalacticPhoenixFX para gestión visual y auditiva avanzada.
  */
 export default class GameScene extends Phaser.Scene {
     /**
@@ -38,94 +25,95 @@ export default class GameScene extends Phaser.Scene {
         this.currentLevelKey = 'level_1';
         /** @type {boolean} */
         this.isGameOver = false;
+        /** @type {GalacticPhoenixFX} */
+        this.fx = null;
     }
 
     /**
      * Inicializa los datos de la escena.
      * @param {Object} data - Datos pasados desde la escena anterior.
-     * @param {string} [data.levelKey] - La clave del nivel a cargar.
      */
     init(data) {
         if (data && data.levelKey) {
             this.currentLevelKey = data.levelKey;
         }
-        this.isGameOver = false; // Reiniciar al inicializar
+        this.isGameOver = false;
     }
 
     /**
-     * Método del ciclo de vida de Phaser. Configura los objetos del juego, gestores y entrada.
+     * Método del ciclo de vida de Phaser.
      */
     create() {
-        // ...
-        // Reiniciar estado de eventos si venimos de un restart
+        // --- 1. CONFIGURACIÓN INICIAL Y LIMPIEZA ---
         this.events.removeAllListeners(EVENTS.LEVEL_FINISHED);
         this.events.removeAllListeners(EVENTS.ENEMY_DESTROYED);
         this.events.removeAllListeners(EVENTS.GAME_OVER);
 
-        // Reset victory panel in UI
+        // Reset UI Panels
         const uiScene = this.scene.get(SCENES.UI);
-        if (uiScene && uiScene.victoryPanel) {
-            uiScene.victoryPanel.setVisible(false);
-        }
-        if (uiScene && uiScene.gameOverPanel) {
-            uiScene.gameOverPanel.setVisible(false);
+        if (uiScene) {
+            if (uiScene.victoryPanel) uiScene.victoryPanel.setVisible(false);
+            if (uiScene.gameOverPanel) uiScene.gameOverPanel.setVisible(false);
         }
 
-        // Cargar datos del nivel actual
+        // --- 2. CARGA DE DATOS Y FONDO ---
         const levelData = this.cache.json.get('levels')[this.currentLevelKey];
-
-        // Crear fondo con tiles
         this.setupBackground(levelData);
 
-        // Inicializar AudioManager
+        // --- 3. INICIALIZAR MOTORES (AUDIO Y FX) ---
         this.audioManager = new AudioManager(this);
-
-        // Reproducir música del nivel
         if (levelData && levelData.music) {
             this.audioManager.playMusic(levelData.music, true, 1500);
         }
 
+        // INICIALIZAR GALACTIC PHOENIX FX ENGINE
+        this.fx = new GalacticPhoenixFX(this);
+        
+        // Configurar atmósfera basada en el nivel (extraer número del string 'level_X')
+        const levelIndex = parseInt(this.currentLevelKey.replace('level_', '')) || 1;
+        this.fx.updateAtmosphereForLevel(levelIndex);
+
+        // --- 4. CONFIGURACIÓN DE ENTIDADES ---
         this.cursors = this.input.keyboard.createCursorKeys();
         this.setupGroups();
 
-        // CORRECCIÓN: Usar estructura aplanada de player.json
         const playerData = this.cache.json.get('player');
-        const spawn = playerData && playerData.player && playerData.player.spawn_position
-            ? playerData.player.spawn_position
-            : { x: 100, y: 300 };
-
-        // Crear Jugador
+        const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
         this.player = new Player(this, spawn.x, spawn.y);
 
-        // Lanzar UI después de crear al jugador
         if (!this.scene.isActive(SCENES.UI)) {
             this.scene.launch(SCENES.UI);
         }
 
-        // CRITICAL: Initialize lives system (only on first create)
-        if (this.lives === undefined) {
-            this.lives = 3;
-        }
+        if (this.lives === undefined) this.lives = 3;
         this.isTransitioning = false;
 
-        // Inicializar Gestor de Nivel
+        // --- 5. GESTORES DE JUEGO ---
         this.levelManager = new LevelManager(this);
         this.levelManager.init(this.currentLevelKey);
-
         this.setupCollisions();
 
-        // Escuchar destrucción de enemigos para efectos
+        // --- 6. GESTIÓN DE EVENTOS (INTEGRACIÓN FX) ---
+        
+        // Evento: Enemigo destruido
         this.events.on(EVENTS.ENEMY_DESTROYED, (x, y, isBoss) => {
             if (isBoss) {
-                ExplosionEffect.createBossExplosion(this, x, y);
-                this.audioManager.playSFX('sfx_boss_explosion', { volume: 0.8 });
+                // Secuencia dramática para el jefe
+                this.fx.bigBang(x, y);
+                this.fx.chainReaction(x, y, 8); // 8 explosiones secundarias
+                // El FX Engine ya maneja el sonido, pero si quieres refuerzo:
+                // this.audioManager.playSFX('sfx_boss_explosion', { volume: 0.8 });
             } else {
-                ExplosionEffect.createSmallExplosion(this, x, y);
-                this.audioManager.playSFX('sfx_enemy_explosion', { volume: 0.4 });
+                // Variedad aleatoria para enemigos comunes
+                const rand = Phaser.Math.Between(0, 2);
+                if (rand === 0) this.fx.standard(x, y);
+                else if (rand === 1) this.fx.plasma(x, y);
+                else this.fx.mechanicalFailure(x, y);
             }
         });
 
         this.events.once(EVENTS.LEVEL_FINISHED, () => {
+            this.fx.levelUp(this.player.x, this.player.y); // Efecto visual de victoria
             this.time.delayedCall(2000, () => this.goToNextLevel());
         });
 
@@ -133,14 +121,11 @@ export default class GameScene extends Phaser.Scene {
             this.handleGameOver();
         });
 
-        // ESC key to pause
+        // --- 7. INPUTS Y PAUSA ---
         this.input.keyboard.on('keydown-ESC', () => {
-            if (!this.isGameOver) {
-                this.pauseGame();
-            }
+            if (!this.isGameOver) this.pauseGame();
         });
 
-        // Fix: Pausar automáticamente si el usuario cambia de pestaña o minimiza
         this.onGameBlur = () => {
             if (!this.isGameOver && !this.scene.isPaused(SCENES.GAME)) {
                 this.pauseGame();
@@ -154,20 +139,16 @@ export default class GameScene extends Phaser.Scene {
      */
     pauseGame() {
         this.physics.pause();
-        if (this.audioManager) {
-            // Pausar música (reducir volumen)
-            if (this.audioManager.currentMusic) {
-                this.tweens.add({
-                    targets: this.audioManager.currentMusic,
-                    volume: this.audioManager.musicVolume * 0.3,
-                    duration: 300
-                });
-            }
+        if (this.audioManager && this.audioManager.currentMusic) {
+            this.tweens.add({
+                targets: this.audioManager.currentMusic,
+                volume: this.audioManager.musicVolume * 0.3,
+                duration: 300
+            });
         }
         this.scene.launch(SCENES.PAUSE);
         this.scene.pause();
 
-        // Escuchador para reanudar
         this.events.once('resume', () => {
             this.physics.resume();
             if (this.audioManager && this.audioManager.currentMusic) {
@@ -182,52 +163,44 @@ export default class GameScene extends Phaser.Scene {
 
     /**
      * Maneja el estado de fin de juego (Game Over).
-     * Muestra la pantalla de Game Over y detiene la lógica del juego.
      */
     handleGameOver() {
-    if (this.isGameOver) return;
+        if (this.isGameOver) return;
+        this.isGameOver = true;
+        
+        this.physics.pause();
+        this.bgScrollSpeed = 0;
 
-    this.isGameOver = true;
-    
-    // 1. Detener el mundo físico y el scroll
-    this.physics.pause();
-    this.bgScrollSpeed = 0;
+        // Efectos FX de Game Over
+        if (this.fx) {
+            this.fx.applyDistortion(2000, 2.0); // Distorsión fuerte
+            this.fx.mechanicalFailure(this.player.x, this.player.y); // Explosión de la nave
+        }
 
-    // 2. Desactivar al jugador por completo para evitar respawns fantasma
-    if (this.player) {
-        this.player.setActive(false);
-        this.player.setVisible(false);
-        if (this.player.body) this.player.body.enable = false;
-        // Importante: cancelar cualquier temporizador de respawn pendiente
-        this.time.removeAllEvents(); 
+        if (this.player) {
+            this.player.setActive(false);
+            this.player.setVisible(false);
+            if (this.player.body) this.player.body.enable = false;
+            this.time.removeAllEvents(); 
+        }
+
+        if (this.levelManager) this.levelManager.isLevelRunning = false;
+        
+        if (this.audioManager) {
+            this.audioManager.stopMusic(500);
+            this.audioManager.playSFX('sfx_gameover', { volume: 0.8 });
+        }
+
+        this.events.emit('SHOW_GAME_OVER_PANEL');
     }
-
-    if (this.levelManager) this.levelManager.isLevelRunning = false;
-    
-    // 3. Audio: Detener música y lanzar efecto de derrota
-    if (this.audioManager) {
-        this.audioManager.stopMusic(500);
-        this.audioManager.playSFX('sfx_gameover', { volume: 0.8 });
-    }
-
-    // 4. Comunicación con la UI
-    // En lugar de launch (que puede fallar si ya está activa), usamos events
-    this.events.emit('SHOW_GAME_OVER_PANEL'); 
-    
-    // O si prefieres mantener el sistema de paso de datos, asegúrate de que UIScene escuche 'wake'
-    this.scene.launch(SCENES.UI, { gameOver: true });
-}
 
     /**
      * Configura el fondo con tiles animados.
-     * @param {Object} levelData - Datos del nivel actual.
      */
     setupBackground(levelData) {
         const bgKey = levelData && levelData.background ? levelData.background : 'bg_space_nebula';
         const scrollSpeed = levelData && levelData.bg_tile_speed ? levelData.bg_tile_speed : 2;
 
-        // Crear TileSprite para fondo repetido
-        // bg_nebula.png y bg_void.png son 16x16 pixels
         this.background = this.add.tileSprite(
             0, 0,
             this.scale.width * 2,
@@ -237,12 +210,11 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0, 0)
             .setDepth(DEPTH.BACKGROUND);
 
-        // Guardar velocidad de scroll
         this.bgScrollSpeed = scrollSpeed;
     }
 
     /**
-     * Configura los grupos para varios objetos del juego (balas, enemigos, powerups).
+     * Configura los grupos para varios objetos del juego.
      */
     setupGroups() {
         const groupConfig = { runChildUpdate: true };
@@ -254,13 +226,14 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Configura la lógica de colisión y solapamiento entre las entidades del juego.
+     * Configura la lógica de colisión y solapamiento.
      */
     setupCollisions() {
-        // ...
         // Colisiones jugador → enemigos
         this.physics.add.overlap(this.playerBullets, this.enemies, (bullet, enemy) => {
             if (bullet.active && enemy.active) {
+                // Pequeño efecto de impacto en el enemigo
+                this.fx.sparks(bullet.x, bullet.y);
                 enemy.takeDamage(bullet.stats);
                 bullet.kill();
             }
@@ -269,6 +242,7 @@ export default class GameScene extends Phaser.Scene {
         // Colisiones jugador → jefes
         this.physics.add.overlap(this.playerBullets, this.bossGroup, (bullet, boss) => {
             if (bullet.active && boss.active && !boss.isDead) {
+                this.fx.sparks(bullet.x, bullet.y);
                 boss.takeDamage(bullet.stats);
                 bullet.kill();
             }
@@ -277,6 +251,10 @@ export default class GameScene extends Phaser.Scene {
         // Colisiones enemigos → jugador
         this.physics.add.overlap(this.player, this.enemiesBullets, (player, bullet) => {
             if (bullet.active && !player.isDead) {
+                // Efecto visual de daño al jugador
+                this.fx.sparks(player.x, player.y);
+                this.cameras.main.shake(100, 0.01); // Shake ligero
+                
                 player.takeDamage(bullet.stats);
                 bullet.kill();
             }
@@ -284,12 +262,17 @@ export default class GameScene extends Phaser.Scene {
 
         // Colisiones powerups
         this.physics.add.overlap(this.player, this.powerUps, (player, pu) => {
-            if (pu.active) pu.collect(player);
+            if (pu.active) {
+                // FX de recolección
+                this.fx.weaponUpgrade(pu.x, pu.y); 
+                pu.collect(player);
+            }
         });
 
-        // Colisiones físicas jugador-enemigos
+        // Colisiones físicas jugador-enemigos (choque directo)
         this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
             if (enemy.active && !player.isDead) {
+                this.fx.mechanicalFailure(player.x, player.y); // Efecto de choque
                 player.takeDamage({ damage: 20, type: 'fisico' });
                 enemy.die();
             }
@@ -298,6 +281,7 @@ export default class GameScene extends Phaser.Scene {
         // Colisiones físicas jugador-jefes
         this.physics.add.overlap(this.player, this.bossGroup, (player, boss) => {
             if (boss.active && !player.isDead && !boss.isDead) {
+                this.fx.mechanicalFailure(player.x, player.y);
                 player.takeDamage({ damage: 30, type: 'fisico' });
             }
         });
@@ -305,14 +289,10 @@ export default class GameScene extends Phaser.Scene {
 
     /**
      * Bucle principal de actualización.
-     * @param {number} time - Tiempo actual del juego.
-     * @param {number} delta - Tiempo delta desde el último frame.
      */
     update(time, delta) {
-        // No actualizar si el juego ha terminado o está en transición
         if (this.isGameOver || this.isTransitioning) return;
 
-        // Animar fondo
         if (this.background) {
             this.background.tilePositionX += this.bgScrollSpeed;
         }
@@ -325,16 +305,17 @@ export default class GameScene extends Phaser.Scene {
 
     /**
      * Lógica para la transición al siguiente nivel.
-     * Maneja el desvanecimiento de la cámara y el reinicio del nivel.
      */
     goToNextLevel() {
         this.isTransitioning = true;
+        
+        // Efecto Warp/Velocidad visual (opcional si lo agregas al FX engine)
+        // this.fx.starField(2000); // Acelerar estrellas
 
         if (this.player) {
             this.player.canShoot = false;
             if (!this.player.isDead) {
                 this.player.hp = this.player.maxHp;
-                // Actualizar UI inmediatamente
                 const uiScene = this.scene.get(SCENES.UI);
                 if (uiScene) {
                     uiScene.updateHealth({
@@ -345,7 +326,7 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // Detener a todos los enemigos
+        // Limpieza de entidades
         if (this.enemies) {
             this.enemies.children.entries.forEach(enemy => {
                 if (enemy.active) {
@@ -355,59 +336,49 @@ export default class GameScene extends Phaser.Scene {
             });
         }
 
-        // Matar todas las balas enemigas
         if (this.enemiesBullets) {
             this.enemiesBullets.children.entries.forEach(bullet => {
                 if (bullet.active) bullet.kill();
             });
         }
 
-        // Desvanecer música
         if (this.audioManager) {
             this.audioManager.stopMusic(500);
         }
 
         this.cameras.main.fadeOut(1000, 0, 0, 0);
-        if (this.cameras.main.once) {
-            this.cameras.main.once('camerafadeoutcomplete', () => {
-                this.finalizeLevelTransition();
-            });
-        } else {
-            // Fallback para mocks de test
+        this.cameras.main.once('camerafadeoutcomplete', () => {
             this.finalizeLevelTransition();
-        }
+        });
     }
 
     /**
-     * Finaliza la transición del nivel, cambiando al siguiente mapa o volviendo al menú.
+     * Finaliza la transición del nivel.
      */
     finalizeLevelTransition() {
+        // Limpiar el clima actual para evitar que persista en el menú o carga
+        if (this.fx && this.fx.currentWeather) {
+            this.fx.currentWeather.destroy();
+        }
+
         if (this.currentLevelKey === 'level_2') {
-            // Si terminamos el nivel 2, volvemos al menú principal
             this.scene.stop(SCENES.UI);
             this.scene.start(SCENES.MENU);
         } else {
-            // De lo contrario, pasamos al siguiente nivel (nivel 2)
             const nextLevel = 'level_2';
-
-            // Limpiar audio antes de cambiar nivel
             if (this.audioManager && this.audioManager.destroy) {
                 this.audioManager.destroy();
             }
-
             this.scene.restart({ levelKey: nextLevel });
         }
     }
 
     /**
-     * Intenta spawnear un power-up en la posición dada.
-     * @param {number} x - Posición horizontal.
-     * @param {number} y - Posición vertical.
+     * Intenta spawnear un power-up.
      */
     trySpawnPowerUp(x, y) {
         if (!this.powerUps || !this.player) return;
 
-        // Probabilidad basada en la estadística de suerte del jugador
         const luck = this.player.currentStats.luck || 15;
         const roll = Phaser.Math.Between(1, 100);
 
@@ -415,16 +386,14 @@ export default class GameScene extends Phaser.Scene {
             const powerupData = this.cache.json.get('powerups');
             if (!powerupData) return;
 
-            // Obtener todas las claves de powerups disponibles
             const keys = Object.keys(powerupData);
             if (keys.length === 0) return;
 
-            // Seleccionar uno al azar
             const randomKey = Phaser.Utils.Array.GetRandom(keys);
-
-            // Obtener del pool
             const powerup = this.powerUps.get();
             if (powerup) {
+                // Efecto visual al aparecer el item
+                this.fx.extraLife(x, y); 
                 powerup.spawn(x, y, randomKey);
             }
         }
@@ -434,11 +403,13 @@ export default class GameScene extends Phaser.Scene {
      * Limpieza cuando la escena se cierra o se reinicia.
      */
     shutdown() {
-        // Limpieza al cerrar la escena
         if (this.audioManager) {
             this.audioManager.destroy();
         }
-        // Limpiar evento global para evitar duplicados al reiniciar
+        // Asegurar que el FX Engine limpie sus listeners o shaders
+        if (this.fx && this.fx.currentWeather) {
+            this.fx.currentWeather.destroy();
+        }
         if (this.onGameBlur) {
             this.game.events.off('blur', this.onGameBlur);
         }
