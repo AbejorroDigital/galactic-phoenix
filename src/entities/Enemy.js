@@ -1,11 +1,11 @@
 /**
  * @typedef {Object} EnemyConfig
- * @property {string} sprite - Key of the sprite in the cache.
- * @property {number} hp - Initial health points.
- * @property {Object.<string, number>} [resistances] - Damage multipliers by type.
- * @property {'linear'|'sine_wave'|'zigzag'} movement - The movement pattern to follow.
- * @property {number} [speed=150] - Horizontal speed.
- * @property {number} [visual_scale=1] - Sprite scale.
+ * @property {string} sprite - Clave del sprite en el cache.
+ * @property {number} hp - Puntos de vida iniciales.
+ * @property {Object.<string, number>} [resistances] - Multiplicadores de daño.
+ * @property {'linear'|'sine_wave'|'zigzag'} movement - Patrón de movimiento.
+ * @property {number} [speed=150] - Velocidad horizontal.
+ * @property {number} [visual_scale=1] - Escala del sprite.
  */
 
 import { EVENTS } from '../core/Constants.js';
@@ -14,18 +14,12 @@ import Entity from './Entity.js';
 /**
  * @class Enemy
  * @extends Entity
- * @description Standard unit for enemies. Managed through a Phaser Group pool.
- * Supports multiple movement patterns and automatic cleanup.
- * 
- * @fires EVENTS.SCORE_CHANGE
- * 
- * @example
- * const enemy = enemyGroup.get();
- * enemy.spawn(300, { sprite: 'interceptor', hp: 50, movement: 'sine_wave' });
+ * @description Unidad estándar de enemigos. Gestionada mediante pool de Phaser.
+ * Ahora integrada con Galactic Phoenix FX para feedback de daño y muerte.
  */
 export default class Enemy extends Entity {
     /**
-     * @param {Phaser.Scene} scene - The scene this enemy belongs to.
+     * @param {Phaser.Scene} scene - La escena a la que pertenece.
      */
     constructor(scene) {
         super(scene, 0, 0, 'enemy1');
@@ -35,24 +29,27 @@ export default class Enemy extends Entity {
         this.movementType = 'linear';
         /** @type {number} */
         this.speed = 150;
+        /** @type {GalacticPhoenixFX} */
+        this.fx = scene.fx;
     }
 
     /**
-     * Initializes or resets the enemy from the pool.
-     * @param {number} y - Initial vertical position.
-     * @param {EnemyConfig} config - Configuration data for this enemy instance.
+     * Inicializa o reinicia el enemigo desde el pool.
+     * @param {number} y - Posición vertical inicial.
+     * @param {EnemyConfig} config - Datos de configuración.
      */
     spawn(y, config) {
+        // Posicionar ligeramente fuera de cámara a la derecha
         this.setPosition(this.scene.scale.width + 50, y);
         this.setTexture(config.sprite);
-        this.hp = config.hp || config.health || 20; // Support both names
+        this.hp = config.hp || config.health || 20;
         this.maxHp = this.hp;
         this.resistances = config.resistances || {};
-        this.movementType = config.pattern || config.movement || 'linear'; // Support both names
+        this.movementType = config.pattern || config.movement || 'linear';
         this.speed = config.speed || 150;
-        this.setScale(config.visual_scale || 1);
+        this.setScale(0); // Empezamos en 0 para efecto de entrada
 
-        // Combat stats
+        // Estadísticas de combate
         this.weaponId = config.weapon || 'enemy_laser';
         this.fireRate = config.fire_rate || 2000;
         this.fireTimer = 0;
@@ -61,97 +58,144 @@ export default class Enemy extends Entity {
         this.setActive(true);
         this.setVisible(true);
         this.body.enable = true;
+        this.clearTint();
 
         this.birthTime = this.scene.time.now;
 
-        // Base movement: ALWAYS to the left in a horizontal Shmup
+        // Efecto de "Warp-in" al aparecer
+        this.scene.tweens.add({
+            targets: this,
+            scale: config.visual_scale || 1,
+            duration: 400,
+            ease: 'Back.easeOut'
+        });
+
+        // Movimiento base hacia la izquierda
         this.body.setVelocityX(-this.speed);
     }
 
     /**
-     * Updates movement based on the configured pattern and handles shooting.
-     * @param {number} time - Current game time.
+     * Actualiza el movimiento y la lógica de disparo.
      */
     update(time) {
         if (!this.active || this.isDead) return;
 
-        // Movement pattern logic
         const elapsed = time - this.birthTime;
 
+        // Lógica de patrones de movimiento
         switch (this.movementType) {
             case 'sine':
             case 'sine_wave':
                 this.body.setVelocityY(Math.sin(elapsed * 0.005) * 150);
                 break;
             case 'zigzag':
-                if (Math.floor(elapsed / 1000) % 2 === 0) {
-                    this.body.setVelocityY(100);
-                } else {
-                    this.body.setVelocityY(-100);
-                }
+                // Cambio de dirección cada 1000ms
+                const direction = Math.floor(elapsed / 1000) % 2 === 0 ? 1 : -1;
+                this.body.setVelocityY(direction * 120);
                 break;
             default:
                 this.body.setVelocityY(0);
         }
 
-        // Keep horizontal movement consistent
         this.body.setVelocityX(-this.speed);
 
-        // Shooting logic
-        if (time > this.fireTimer) {
+        // Disparo (solo si está dentro de la pantalla)
+        if (time > this.fireTimer && this.x < this.scene.scale.width) {
             this.shoot(time);
         }
 
-        // Automatic cleanup off-screen
+        // Limpieza automática al salir por la izquierda
         if (this.x < -100) {
             this.dieSilently();
         }
     }
 
     /**
-     * Fires a projectile if a weapon is assigned.
-     * @param {number} time - Current game time.
+     * Sobreescritura para añadir feedback visual de impacto.
+     */
+    takeDamage(stats) {
+        if (this.isDead) return;
+
+        super.takeDamage(stats);
+
+        // Feedback visual: Flash blanco y chispas
+        this.setTint(0xffffff);
+        this.scene.time.delayedCall(50, () => {
+            if (this.active && !this.isDead) this.clearTint();
+        });
+
+        if (this.fx) {
+            this.fx.sparks(this.x, this.y);
+            // Si le queda poca vida, soltar escombros metálicos
+            if (this.hp < this.maxHp * 0.3) {
+                this.fx.debris(this.x, this.y);
+            }
+        }
+    }
+
+    /**
+     * Dispara un proyectil.
      */
     shoot(time) {
         if (!this.scene.enemiesBullets) return;
 
         const bullet = this.scene.enemiesBullets.get();
         if (bullet) {
-            // Enemy fire goes to the left (false)
             bullet.fire(this.x - 20, this.y, this.weaponId, false);
-            this.fireTimer = time + this.fireRate + Phaser.Math.Between(-200, 200); // Add variance
+            // Añadir varianza para que no todos los enemigos disparen en coro
+            this.fireTimer = time + this.fireRate + Phaser.Math.Between(-300, 300);
         }
     }
 
     /**
-     * Triggered when the enemy is destroyed by the player.
-     * Handles score emission and power-up drop probability.
-     * @fires EVENTS.SCORE_CHANGE
+     * Muerte del enemigo con integración de eventos y FX.
      */
     die() {
-        // Emitir puntos
+        if (this.isDead) return;
+        this.isDead = true;
+
+        // Sumar puntos
         this.scene.events.emit(EVENTS.SCORE_CHANGE, 100);
 
-        // Notificar destrucción para efectos y sonido
+        // El GameScene escucha este evento para lanzar fx.standard o fx.plasma
         this.scene.events.emit(EVENTS.ENEMY_DESTROYED, this.x, this.y, false);
 
-        // Probabilidad de PowerUp
+        // Efecto adicional local: escombros finales
+        if (this.fx) {
+            this.fx.debris(this.x, this.y);
+            // 20% de probabilidad de una pequeña falla mecánica extra
+            if (Math.random() > 0.8) this.fx.mechanicalFailure(this.x, this.y);
+        }
+
+        // Probabilidad de soltar un PowerUp
         if (typeof this.scene.trySpawnPowerUp === 'function') {
             this.scene.trySpawnPowerUp(this.x, this.y);
         }
 
-        // Efecto visual simple (puedes añadir partículas aquí)
-        super.die();
+        // Desactivar colisiones inmediatamente
+        this.body.enable = false;
+
+        // Animación de encogimiento antes de desaparecer del pool
+        this.scene.tweens.add({
+            targets: this,
+            scale: 0,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => {
+                super.die(); // Devuelve al pool
+                this.setAlpha(1); // Reset para el próximo spawn
+            }
+        });
     }
 
     /**
-     * Disables the entity without triggering gameplay death events.
-     * Used for off-screen cleanup.
+     * Limpieza silenciosa para cuando sale de pantalla.
      */
     dieSilently() {
         this.isDead = true;
         this.setActive(false);
         this.setVisible(false);
         this.body.enable = false;
+        if (this.body) this.body.stop();
     }
 }
