@@ -1,6 +1,6 @@
 import { DEPTH, EVENTS, SCENES } from '../core/Constants.js';
 // import ExplosionEffect from '../effects/ExplosionEffect.js'; // REEMPLAZADO POR FX ENGINE
-import GalacticPhoenixFX from '..src/core/Galactic-Phoenix-FX-Engine.js'; // NUEVO MOTOR FX
+import GalacticPhoenixFX from '../core/Galactic-Phoenix-FX-Engine.js'; // NUEVO MOTOR FX
 import Boss from '../entities/Boss.js';
 import Enemy from '../entities/Enemy.js';
 import Player from '../entities/Player.js';
