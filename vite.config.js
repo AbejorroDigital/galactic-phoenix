@@ -2,8 +2,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'jsdom',
+    // Esto hace que el objeto 'global' esté disponible
     globals: true,
-    setupFiles: ['./test/setup.js']
+    // Indica el entorno de navegador simulado
+    environment: 'jsdom',
+    // ¡Aquí está la clave! Ruta hacia tu archivo de mocks
+    setupFiles: ['./test/setup.js'], 
   },
 });

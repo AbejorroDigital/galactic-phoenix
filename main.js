@@ -12,6 +12,21 @@ import OptionsScene from './src/scenes/OptionsScene.js';
 import PauseScene from './src/scenes/PauseScene.js';
 import UIScene from './src/scenes/UIScene.js';
 
+
+// ==================== GLOBAL DEBUG CONFIGURATION ====================
+if (typeof window !== 'undefined') {
+    window.DEBUG_MODE = true;
+    window.DEBUG_KEYS = {
+        TOGGLE_DEBUG: 'H',
+        INSTAKILL: 'K',
+        LEVEL_SELECT_1: 'D',
+        LEVEL_SELECT_2: 'B',
+        LEVEL_SELECT_3: 'G'
+    };
+    console.log('[Main] Modo Debug Global:', window.DEBUG_MODE);
+}
+// ===================================================================
+
 /**
  * Configuración del Juego Phaser.
  * Define el tipo de renderizado, dimensiones, sistema de físicas y orden de las escenas.
