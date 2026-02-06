@@ -53,9 +53,9 @@ export default class BootScene extends Phaser.Scene {
 
         // Bosses
         this.load.image('boss_1', 'assets/sprites/doggusano-boss.png');
-        this.load.image('boss_2', 'assets/sprites/boss_nebula_titan.png');
-        this.load.image('boss_void_reaver', 'assets/sprites/boss_void_reaver.png');
-        this.load.image('boss_nebula_titan', 'assets/sprites/boss_nebula_titan.png');
+        this.load.image('boss_2', 'assets/sprites/carlos-boss.png');
+        this.load.image('boss_void_reaver', 'assets/sprites/doggusano-boss.png');
+        this.load.image('boss_nebula_titan', 'assets/sprites/carlos-boss.png');
 
         // Projectiles
         this.load.image('shot-hero', 'assets/sprites/shot.png');
