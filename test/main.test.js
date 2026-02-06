@@ -1,42 +1,35 @@
-import { describe, expect, it, vi } from 'vitest';
+// 1. PRIMERO importamos el setup para que Phaser exista globalmente
+import './setup.js';
 
-// Simulamos el entorno de navegador básico para Phaser
-global.window = window;
-global.document = window.document;
-global.navigator = window.navigator;
+// 2. DESPUÉS importamos las herramientas de test
+import { describe, expect, it } from 'vitest';
 
-// Mock de Phaser
-global.Phaser = {
-    AUTO: 0,
-    CANVAS: 1,
-    WEBGL: 2,
-    Game: vi.fn().mockImplementation(() => ({
-        // Mock de una instancia de juego mínima
-        destroy: vi.fn(),
-        canvas: {}
-    }))
-};
-
-// Importamos la configuración desde main.js
-// IMPORTANTE: Asegúrate de que main.js exporte 'config'
+// 3. Y FINALMENTE el código de tu juego
 import { config } from '../main.js';
+import BootScene from '../src/scenes/BootScene.js';
+import GameScene from '../src/scenes/GameScene.js';
+import MenuScene from '../src/scenes/MenuScene.js';
 
-describe('Pruebas de Configuración de Galactic Phoenix', () => {
-
-    it('debería tener las dimensiones correctas', () => {
+describe('Galactic Phoenix - Main Game Configuration', () => {
+    
+    it('debería tener las dimensiones de pantalla correctas', () => {
         expect(config.width).toBe(800);
         expect(config.height).toBe(600);
     });
 
-    it('debería tener cargadas las escenas principales', () => {
-        // Verificamos que el array tenga las 7 escenas esperadas
-        expect(config.scene).toHaveLength(7);
-        // Verificamos por nombre de la función constructora
-        expect(config.scene[0].name).toBe('BootScene');
-    });
-
-    it('debería usar física arcade con gravedad 0', () => {
+    it('debería usar el sistema de físicas Arcade sin gravedad', () => {
         expect(config.physics.default).toBe('arcade');
         expect(config.physics.arcade.gravity.y).toBe(0);
+    });
+
+    it('debería incluir todas las escenas necesarias', () => {
+        expect(config.scene).toContain(BootScene);
+        expect(config.scene).toContain(MenuScene);
+        expect(config.scene).toContain(GameScene);
+        expect(config.scene.length).toBe(7);
+    });
+
+    it('debería tener configurado el contenedor del DOM correcto', () => {
+        expect(config.parent).toBe('game-container');
     });
 });

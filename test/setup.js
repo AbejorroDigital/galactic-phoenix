@@ -2,8 +2,8 @@ import { vi } from 'vitest';
 
 console.log("Mocking Phaser Global...");
 
-// Mock Phaser Global
-global.Phaser = {
+// Mock Phaser Global utilizando globalThis para mayor compatibilidad
+globalThis.Phaser = {
     Scene: class {
         constructor(key) {
             this.sys = {
@@ -27,10 +27,12 @@ global.Phaser = {
             this.events = { on: vi.fn(), emit: vi.fn(), once: vi.fn(), off: vi.fn() };
             this.registry = {
                 get: vi.fn((key) => {
-                    if (key === 'musicVolume') return 0.5;
-                    if (key === 'sfxVolume') return 0.7;
-                    if (key === 'graphicsQuality') return 1;
-                    return null;
+                    const volumes = {
+                        musicVolume: 0.5,
+                        sfxVolume: 0.7,
+                        graphicsQuality: 1
+                    };
+                    return volumes[key] ?? null;
                 }),
                 set: vi.fn(),
                 has: vi.fn().mockReturnValue(true)
@@ -52,18 +54,25 @@ global.Phaser = {
                     fadeOut: vi.fn(),
                     shake: vi.fn(),
                     on: vi.fn(),
-                    once: vi.fn((event, callback) => callback && callback()), // Auto-resolve for tests
+                    once: vi.fn((event, callback) => callback?.()),
                     off: vi.fn()
                 }
             };
             this.time = { delayedCall: vi.fn(), addEvent: vi.fn() };
             this.add = { image: vi.fn(), text: vi.fn(), existing: vi.fn(), group: vi.fn() };
-            this.physics = { add: { group: vi.fn(), existing: vi.fn(), overlap: vi.fn() }, world: { enable: vi.fn() } };
+            this.physics = { 
+                add: { group: vi.fn(), existing: vi.fn(), overlap: vi.fn() }, 
+                world: { enable: vi.fn() } 
+            };
             this.make = { text: vi.fn() };
             this.input = { keyboard: { createCursorKeys: vi.fn(), on: vi.fn() } };
             this.bgScrollSpeed = 0;
         }
-        update() { }
+
+        // Se añade un comentario para indicar que el método está vacío intencionadamente (evita S1186)
+        update() { 
+            /* Método base para ser sobreescrito en las escenas */
+        }
     },
     Physics: {
         Arcade: {
@@ -86,6 +95,12 @@ global.Phaser = {
                         width: 10,
                         height: 10
                     };
+                    
+                    // Definimos métodos básicos para que la clase no parezca "vacía" solo con constructor
+                    this.init();
+                }
+
+                init() {
                     this.setTint = vi.fn().mockReturnThis();
                     this.clearTint = vi.fn().mockReturnThis();
                     this.setActive = vi.fn().mockImplementation((v) => { this.active = v; return this; });
@@ -104,22 +119,18 @@ global.Phaser = {
     Math: {
         Clamp: (v, min, max) => Math.min(Math.max(v, min), max),
         Between: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
-        Angle: {
-            Between: () => 0
-        },
+        Angle: { Between: () => 0 },
         RadToDeg: (rad) => rad * 180 / Math.PI
     },
     Utils: {
-        Array: {
-            GetRandom: (arr) => arr[0]
-        }
+        Array: { GetRandom: (arr) => arr[0] }
     }
 };
 
-// Mock window.DEBUG_LOGGER
-global.window = global.window || {};
-global.window.__VITEST__ = true;
-global.window.DEBUG_LOGGER = {
+// Mock window.DEBUG_LOGGER usando globalThis
+globalThis.window ??= {};
+globalThis.window.__VITEST__ = true;
+globalThis.window.DEBUG_LOGGER = {
     log: vi.fn(),
     logPlayerState: vi.fn(),
     logSpriteState: vi.fn(),
