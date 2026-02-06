@@ -2,9 +2,9 @@
   "bosses": {
     "void_reaver": {
       "name": "Void Reaver",
-      "sprite": "boss_1",
-      "health": 3000,
-      "hp": 3000,
+      "sprite": "boss_void_reaver",
+      "health": 14000,
+      "hp": 14000,
       "speed": 80,
       "behavior": "vertical_bounce",
       "visual_scale": 1.0,
@@ -29,13 +29,13 @@
     },
     "nebula_titan": {
       "name": "Nebula Titan",
-      "sprite": "boss_2",
-      "health": 3500,
-      "hp": 3500,
+      "sprite": "boss_nebula_titan",
+      "health": 14000,
+      "hp": 14000,
       "speed": 60,
       "behavior": "figure_eight",
-      "visual_scale": 1.2,
-      "hitbox_scale": 0.75,
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
       "resistances": {
         "laser": 0.7,
         "plasma": 0.5,
@@ -57,6 +57,155 @@
           "hp_threshold": 0.3,
           "weapon": "ion_disruptor",
           "fire_rate": 400
+        }
+      ]
+    },
+    "boss_evilbyice": {
+      "name": "Evil By Ice",
+      "sprite": "boss_evilbyice",
+      "health": 14000,
+      "hp": 14000,
+      "speed": 90,
+      "behavior": "vertical_bounce",
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.6,
+        "plasma": 0.8,
+        "fisico": 0.7
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "plasma_ball",
+          "fire_rate": 900
+        },
+        {
+          "hp_threshold": 0.5,
+          "weapon": "laser_cannon",
+          "fire_rate": 600
+        }
+      ]
+    },
+    "boss_eyeugly": {
+      "name": "Eye Ugly",
+      "sprite": "boss_eyeugly",
+      "health": 145000,
+      "hp": 14000,
+      "speed": 70,
+      "behavior": "figure_eight",
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.5,
+        "plasma": 0.7,
+        "fisico": 0.8,
+        "ionico": 1.0
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "ion_disruptor",
+          "fire_rate": 850
+        },
+        {
+          "hp_threshold": 0.5,
+          "weapon": "plasma_burst",
+          "fire_rate": 550
+        }
+      ]
+    },
+    "boss_goldenbro": {
+      "name": "Golden Bro",
+      "sprite": "boss_goldenbro",
+      "health": 14000,
+      "hp": 14000,
+      "speed": 85,
+      "behavior": "horizontal_drift",
+      "visual_scale": 1.15,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.4,
+        "plasma": 0.6,
+        "fisico": 0.5,
+        "ionico": 0.8
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "enemy_laser",
+          "fire_rate": 800
+        },
+        {
+          "hp_threshold": 0.6,
+          "weapon": "plasma_ball",
+          "fire_rate": 600
+        },
+        {
+          "hp_threshold": 0.3,
+          "weapon": "laser_cannon",
+          "fire_rate": 400
+        }
+      ]
+    },
+    "boss_rixter": {
+      "name": "Rixter",
+      "sprite": "boss_rixter",
+      "health": 13000,
+      "hp": 13000,
+      "speed": 100,
+      "behavior": "aggressive_pursuit",
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.7,
+        "plasma": 0.7,
+        "fisico": 0.7,
+        "ionico": 0.7
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "plasma_burst",
+          "fire_rate": 750
+        },
+        {
+          "hp_threshold": 0.5,
+          "weapon": "laser_cannon",
+          "fire_rate": 450
+        }
+      ]
+    },
+    "carlos_boss": {
+      "name": "Carlos the Destroyer",
+      "sprite": "carlos_boss",
+      "health": 14000,
+      "hp": 14000,
+      "speed": 95,
+      "behavior": "chaos_pattern",
+      "visual_scale": 1.0,
+      "hitbox_scale": 0.8,
+      "resistances": {
+        "laser": 0.3,
+        "plasma": 0.4,
+        "fisico": 0.4,
+        "ionico": 0.5
+      },
+      "phases": [
+        {
+          "hp_threshold": 1.0,
+          "weapon": "enemy_laser",
+          "fire_rate": 700
+        },
+        {
+          "hp_threshold": 0.6,
+          "weapon": "plasma_burst",
+          "fire_rate": 500
+        },
+        {
+          "hp_threshold": 0.3,
+          "weapon": "laser_cannon",
+          "fire_rate": 300
         }
       ]
     }

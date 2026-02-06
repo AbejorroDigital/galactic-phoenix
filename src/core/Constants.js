@@ -22,13 +22,29 @@ export const EVENTS = {
     /** Emitido cuando el juego termina. */
     GAME_OVER: 'game-over',
     /** Emitido cuando se completa una secuencia de nivel. */
-    LEVEL_FINISHED: 'level-finished'
+    LEVEL_FINISHED: 'level-finished',
+    /** Emitido cuando se inflige daño a una entidad. Parámetros: { x, y, amount, isCritical, targetType, damageType } */
+    DAMAGE_DEALT: 'damage-dealt',
+    /** Emitido en el punto de impacto. Parámetros: { x, y, damageType } */
+    HIT_IMPACT: 'hit-impact',
+    /** Emitido cuando se activa un powerup. Parámetros: { type, duration } */
+    POWERUP_ACTIVATED: 'powerup-activated',
+    /** Emitido cuando expira un powerup. Parámetros: { type } */
+    POWERUP_EXPIRED: 'powerup-expired',
+
+    // Debug System Events
+    ENTITY_SPAWNED: 'entity-spawned',
+    ENTITY_DESTROYED: 'entity-destroyed'
 };
 
 /**
  * @description Nombres internos para las escenas de Phaser.
  * @enum {string}
  */
+// ==================== DEBUG CONFIGURATION ====================
+// (Deprecado: Usar window.DEBUG_MODE y window.DEBUG_KEYS definidos en main.js)
+// ============================================================
+
 export const SCENES = {
     BOOT: 'BootScene',
     MENU: 'MenuScene',
@@ -45,8 +61,12 @@ export const SCENES = {
  */
 export const DEPTH = {
     BACKGROUND: 0,
+    EFFECTS: 5,          // Trails, explosiones de fondo
     PROJECTILES: 10,
     ENEMIES: 20,
+    PLAYER_AURA: 29,     // Aura de powerup
     PLAYER: 30,
+    HIT_EFFECTS: 35,     // Flares, partículas de impacto
+    UI_EFFECTS: 40,      // Números de daño
     UI: 100
 };

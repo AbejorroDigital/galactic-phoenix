@@ -7,9 +7,9 @@
     "visual_scale": 0.8,
     "luck": 15,
     "fire_rate": 250,
-    "max_hp": 1000,
-    "hp": 1000,
-    "base_shields": 100,
+    "max_hp": 5000,
+    "hp": 5000,
+    "base_shields": 200,
     "invulnerability_time": 1500,
     "spawn_position": {
       "x": 100,

@@ -1,26 +1,14 @@
 import { EVENTS } from '../core/Constants.js';
 import Entity from './Entity.js';
-import PlayerVFX from './PlayerVFX.js';
 import PlayerHealth from './PlayerHealth.js';
+import PlayerVFX from './PlayerVFX.js';
 
-/**
- * @class Player
- * @extends Entity
- * @description Entidad del jugador con soporte para módulos de salud, VFX y 
- * sistema de estadísticas dinámico.
- */
 export default class Player extends Entity {
-    /**
-     * @param {Phaser.Scene} scene - Escena GameScene.
-     * @param {number} x - Posición X inicial.
-     * @param {number} y - Posición Y inicial.
-     */
     constructor(scene, x, y) {
         super(scene, x, y, 'ship');
 
-        // --- Carga de Configuración ---
         const playerData = scene.cache.json.get('player');
-        const data = playerData?.player || playerData || {};
+        const data = (playerData && playerData.player) ? playerData.player : (playerData || {});
 
         // --- Estado y Estadísticas ---
         this.statsBase = {
@@ -29,197 +17,117 @@ export default class Player extends Entity {
             luck: data.luck || 15,
             visual_scale: data.visual_scale || 0.8
         };
-        
         this.currentStats = { ...this.statsBase };
         this.hp = data.hp || data.max_hp || 100;
         this.maxHp = data.max_hp || 100;
         this.shield = data.base_shields || 0;
         this.maxShield = data.base_shields || 0;
         this.currentWeapon = data.starting_weapon || 'basic_cannon';
-        
+
         this.isDead = false;
         this.isInvulnerable = false;
         this.lastFired = 0;
         this.canShoot = true;
 
-        // --- Referencia a Motores Externos ---
-        this.fx = scene.fx; // Galactic Phoenix FX Engine
+        // --- Sistema de Aura de PowerUp ---
+        this.powerupAura = null;
+        this.powerupAuraTween = null;
 
         // --- Módulos Auxiliares ---
-        // Se pasan las referencias necesarias para la delegación de responsabilidades
         this.vfx = new PlayerVFX(this);
         this.health = new PlayerHealth(this);
 
-        // --- Configuración Física y Visual ---
         this.setScale(this.statsBase.visual_scale);
         this.setCollideWorldBounds(true);
-        this.body.setMass(1);
 
-        // --- Listeners de Configuración ---
-        scene.game.events.on('settings-changed', (s) => {
-            if (this.vfx?.updateQuality) this.vfx.updateQuality(s.graphicsQuality);
-        });
-
-        // Emitir estado inicial una vez que la escena esté lista
-        scene.events.once('update', () => this.emitStatus());
+        // --- Eventos de Configuración y UI ---
+        scene.game.events.on('settings-changed', (s) => this.vfx.updateQuality(s.graphicsQuality));
+        if (scene.events) scene.events.once('update', () => this.emitStatus());
     }
 
-    /**
-     * Gestión de movimiento y entrada.
-     * @param {Phaser.Input.Keyboard.CursorKeys} cursors 
-     * @param {number} time 
-     */
     update(cursors, time) {
         if (this.isDead || !this.active) return;
 
-        this.handleMovement(cursors);
-        
-        // Lógica de disparo
-        if (cursors.space.isDown && this.canShoot && time > this.lastFired) {
-            this.shoot(time);
-        }
-    }
-
-    /**
-     * Maneja el desplazamiento y la inclinación visual de la nave.
-     */
-    handleMovement(cursors) {
         this.body.setVelocity(0);
         const speed = this.currentStats.speed;
         let targetAngle = 0;
 
-        // Movimiento Horizontal
-        if (cursors.left.isDown) {
-            this.body.setVelocityX(-speed);
-            targetAngle = -5;
-        } else if (cursors.right.isDown) {
-            this.body.setVelocityX(speed);
-            targetAngle = 5;
+        if (cursors.left.isDown) { this.body.setVelocityX(-speed); targetAngle = -5; }
+        else if (cursors.right.isDown) { this.body.setVelocityX(speed); targetAngle = 5; }
+
+        if (cursors.up.isDown) { this.body.setVelocityY(-speed); targetAngle -= 10; }
+        else if (cursors.down.isDown) { this.body.setVelocityY(speed); targetAngle += 10; }
+
+        this.angle = Phaser.Math.Linear(this.angle, targetAngle, 0.1);
+
+        if (cursors.space.isDown && this.canShoot && time > this.lastFired) {
+            this.shoot(time);
         }
 
-        // Movimiento Vertical
-        if (cursors.up.isDown) {
-            this.body.setVelocityY(-speed);
-            targetAngle -= 10;
-        } else if (cursors.down.isDown) {
-            this.body.setVelocityY(speed);
-            targetAngle += 10;
+        // Sincronizar posición del aura si existe
+        if (this.powerupAura && this.powerupAura.active) {
+            this.powerupAura.setPosition(this.x, this.y);
         }
-
-        // Suavizado de la inclinación (Lerp manual)
-        this.angle = Phaser.Math.Linear(this.angle, targetAngle, 0.15);
     }
 
-    /**
-     * Ejecuta el disparo del arma actual.
-     */
     shoot(time) {
         if (!this.scene.playerBullets) return;
-
         const bullet = this.scene.playerBullets.get();
         if (bullet) {
             bullet.fire(this.x + 30, this.y, this.currentWeapon, true);
             this.lastFired = time + (this.currentStats.fire_rate || 150);
-            
-            // Efecto local de disparo (opcional, si el arma lo requiere)
-            if (this.fx) {
-                // Podríamos añadir un pequeño flash de hocico aquí
-            }
-
-            if (this.scene.audioManager) {
-                this.scene.audioManager.playSFX('sfx_shot', { volume: 0.2 });
-            }
+            if (this.scene.audioManager) this.scene.audioManager.playSFX('sfx_shot', { volume: 0.3 });
         }
     }
 
-    // --- Métodos de Interfaz (Bridge) ---
+    // --- Métodos de Interfaz (Bridge para evitar crasheos) ---
 
-    /**
-     * Delega el daño al módulo de salud.
-     */
-    takeDamage(stats) {
-        if (this.isInvulnerable || this.isDead) return;
-        this.health.takeDamage(stats);
-    }
+    takeDamage(stats) { this.health.takeDamage(stats); }
 
-    /**
-     * Llamado por PlayerHealth para aplicar el daño real tras procesar escudos.
-     */
-    applyBaseDamage(stats) {
-        super.takeDamage(stats);
-        
-        // Feedback visual global al recibir daño
-        if (this.fx) {
-            this.fx.sparks(this.x, this.y);
-            this.scene.cameras.main.shake(100, 0.01);
-        }
-    }
+    addLife(amount = 1) { this.health.addLife(amount); }
 
-    /**
-     * Proceso de re-entrada de la nave tras morir.
-     */
+    // Necesario para que PlayerHealth pueda llamar al daño base de Entity
+    applyBaseDamage(stats) { super.takeDamage(stats); }
+
     respawn() {
         this.hp = this.maxHp;
         this.isDead = false;
+        this.canShoot = true; // <--- AÑADE ESTA LÍNEA AQUÍ
         this.setActive(true);
         this.setVisible(true);
-        this.setAlpha(1);
         if (this.body) this.body.enable = true;
 
         const playerData = this.scene.cache.json.get('player');
         const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
         this.setPosition(spawn.x, spawn.y);
 
-        // Reiniciar sistemas visuales
         this.vfx.startEngine();
         this.setInvulnerable(3000);
-        
-        // Feedback de resurrección
-        if (this.fx) this.fx.orbitalRing(this.x, this.y);
-        
         this.emitStatus();
         this.scene.events.emit(EVENTS.PLAYER_HEAL, { current: this.hp, max: this.maxHp });
     }
 
-    /**
-     * Activa estado de invulnerabilidad temporal.
-     */
     setInvulnerable(duration) {
         this.isInvulnerable = true;
         this.vfx.playFlash(duration);
-        
         this.scene.time.delayedCall(duration, () => {
             if (this.active) this.isInvulnerable = false;
         });
     }
 
-    /**
-     * Incrementa o recupera escudos.
-     */
     recoverShield(amount) {
         this.shield = Math.min(this.shield + amount, this.maxShield);
         this.scene.events.emit(EVENTS.PLAYER_SHIELD, this.shield, this.maxShield);
-        
-        if (this.fx) this.fx.plasma(this.x, this.y); // Efecto de recarga
     }
 
-    /**
-     * Cambia el arma actual del jugador.
-     */
     equipWeapon(weaponId) {
         this.currentWeapon = weaponId;
         this.scene.events.emit(EVENTS.WEAPON_CHANGE, weaponId);
-        
-        if (this.fx) this.fx.weaponUpgrade(this.x, this.y);
     }
 
-    /**
-     * Modifica estadísticas (velocidad, cadencia, etc) temporal o permanentemente.
-     */
     applyStatMod(statKey, value, duration) {
         if (this.currentStats[statKey] !== undefined) {
             this.currentStats[statKey] += value;
-            
             if (duration) {
                 this.scene.time.delayedCall(duration, () => {
                     if (this.active) this.currentStats[statKey] -= value;
@@ -228,32 +136,68 @@ export default class Player extends Entity {
         }
     }
 
-    /**
-     * Sincroniza el estado del jugador con la UI.
-     */
     emitStatus() {
-        if (!this.scene?.events) return;
-        
-        this.scene.events.emit(EVENTS.PLAYER_HIT, { 
-            current: this.hp, 
-            max: this.maxHp 
+        if (this.scene?.events) {
+            this.scene.events.emit(EVENTS.PLAYER_HIT, { current: this.hp, max: this.maxHp });
+            this.scene.events.emit(EVENTS.PLAYER_SHIELD, this.shield, this.maxShield);
+        }
+    }
+
+    die() { if (!this.isDead) this.health.handleDeath(); }
+
+    /**
+     * Muestra un aura visual alrededor del jugador cuando recoge un powerup
+     * @param {string} type - Tipo de powerup (heal, shield, weapon, stat_boost)
+     * @param {number} duration - Duración del efecto en ms
+     */
+    showPowerupAura(type, duration = 5000) {
+        // Limpiar aura anterior si existe
+        this.clearPowerupAura();
+
+        // Mapeo de colores por tipo
+        const auraColors = {
+            'heal': 0x00FF00,       // Verde
+            'shield': 0x00BFFF,     // Azul cielo
+            'weapon': 0xFFD700,     // Dorado
+            'stat_boost': 0xFF00FF, // Magenta
+            'stat_mod': 0xFF00FF,   // Magenta
+            'life': 0xFFFFFF        // Blanco
+        };
+
+        const color = auraColors[type] || 0xFFFFFF;
+
+        // Crear círculo de aura
+        this.powerupAura = this.scene.add.circle(0, 0, 35, color, 0.2)
+            .setDepth(29); // DEPTH.PLAYER_AURA
+
+        // Animación de pulso
+        this.powerupAuraTween = this.scene.tweens.add({
+            targets: this.powerupAura,
+            alpha: 0.4,
+            scale: 1.1,
+            duration: 600,
+            yoyo: true,
+            repeat: Math.floor(duration / 1200)
         });
-        this.scene.events.emit(EVENTS.PLAYER_SHIELD, this.shield, this.maxShield);
+
+        // Auto-destrucción después de la duración
+        this.scene.time.delayedCall(duration, () => {
+            this.clearPowerupAura();
+            this.scene.events.emit('powerup-expired', { type });
+        });
     }
 
     /**
-     * Inicia la secuencia de destrucción.
+     * Limpia el aura de powerup actual
      */
-    die() {
-        if (this.isDead) return;
-        
-        // Delegar muerte al módulo de salud
-        this.health.handleDeath();
-        
-        // Efectos de muerte cinematográficos
-        if (this.fx) {
-            this.fx.mechanicalFailure(this.x, this.y);
-            this.fx.applyDistortion(1000, 1.0);
+    clearPowerupAura() {
+        if (this.powerupAura) {
+            this.powerupAura.destroy();
+            this.powerupAura = null;
+        }
+        if (this.powerupAuraTween) {
+            this.powerupAuraTween.stop();
+            this.powerupAuraTween = null;
         }
     }
 }

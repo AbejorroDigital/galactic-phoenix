@@ -3,7 +3,6 @@ import { EVENTS } from '../core/Constants.js';
 /**
  * @class PlayerHealth
  * @description Gestiona el ciclo de vida del jugador: daño, escudos, vidas y muerte definitiva.
- * Ahora integrado con Galactic Phoenix FX para feedback táctil y visual.
  */
 export default class PlayerHealth {
     constructor(player) {
@@ -11,8 +10,6 @@ export default class PlayerHealth {
         this.player = player;
         /** @type {Phaser.Scene} */
         this.scene = player.scene;
-        /** @type {GalacticPhoenixFX} */
-        this.fx = player.scene.fx;
     }
 
     /**
@@ -22,6 +19,7 @@ export default class PlayerHealth {
     takeDamage(projectileStats) {
         const p = this.player;
         
+        // Si ya está muerto o es invulnerable, ignoramos el impacto
         if (!projectileStats || p.isDead || p.isInvulnerable) return;
 
         let incomingDamage = projectileStats.damage || 0;
@@ -31,25 +29,12 @@ export default class PlayerHealth {
             const damageToShield = Math.min(p.shield, incomingDamage);
             p.shield -= damageToShield;
             incomingDamage -= damageToShield;
-
-            // Feedback visual de escudo (Cian/Plasma)
-            if (this.fx) {
-                this.fx.plasma(p.x, p.y);
-                this.scene.cameras.main.shake(50, 0.005);
-            }
-            
             this.scene.events.emit(EVENTS.PLAYER_SHIELD, p.shield, p.maxShield);
         }
 
-        // 2. Aplicación de Daño Residual a la Salud (Casco)
+        // 2. Aplicación de Daño Residual a la Salud
         if (incomingDamage > 0) {
-            // Efecto de impacto metálico antes de restar vida
-            if (this.fx) {
-                this.fx.sparks(p.x, p.y);
-                this.fx.debris(p.x, p.y); // Saltan piezas de la nave
-                this.scene.cameras.main.flash(100, 255, 0, 0, true); // Flash rojo sutil
-            }
-
+            // Llamamos al método de puente en Player para usar la lógica de Entity
             p.applyBaseDamage({ ...projectileStats, damage: incomingDamage });
             this.scene.events.emit(EVENTS.PLAYER_HIT, { current: p.hp, max: p.maxHp });
         }
@@ -61,48 +46,27 @@ export default class PlayerHealth {
     }
 
     /**
-     * Gestiona la secuencia de destrucción cinemática.
+     * Gestiona la secuencia de destrucción. Decide si restar vida o terminar el juego.
      */
     handleDeath() {
         const p = this.player;
         if (p.isDead) return;
 
+        // Marcamos el estado inmediatamente para evitar múltiples ejecuciones
         p.isDead = true;
         p.canShoot = false;
 
-        // Detener físicas
+        // Limpieza física y visual inmediata
         if (p.body) {
             p.body.enable = false;
             p.body.setVelocity(0, 0);
         }
 
-        // --- Secuencia de Destrucción FX ---
-        if (this.fx) {
-            // 1. Fallo mecánico inmediato
-            this.fx.mechanicalFailure(p.x, p.y);
-            // 2. Distorsión de muerte
-            this.fx.applyDistortion(800, 2.0);
-            // 3. Explosión en cadena pequeña antes de desaparecer
-            this.fx.chainReaction(p.x, p.y, 3);
-        }
+        p.vfx.stopEngine();
+        p.setVisible(false);
+        p.setActive(false);
 
-        // Feedback de Audio
-        if (this.scene.audioManager) {
-            this.scene.audioManager.playSFX('sfx_player_explode');
-        }
-
-        // Desvanecimiento visual
-        this.scene.tweens.add({
-            targets: p,
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                p.setVisible(false);
-                p.setActive(false);
-                p.vfx.stopEngine();
-            }
-        });
-
+        // Notificamos a la UI que el jugador ha caído en esta instancia
         this.scene.events.emit(EVENTS.PLAYER_HIT, { current: 0, max: p.maxHp });
 
         // Gestión del Sistema de Vidas
@@ -113,44 +77,38 @@ export default class PlayerHealth {
             if (this.scene.lives <= 0) {
                 this.triggerGameOver();
             } else {
-                // Programar Respawn con margen para ver la explosión
-                this.scene.time.delayedCall(2000, () => {
-                    if (this.scene && !this.scene.isGameOver) {
+                // Programamos el respawn solo si hay continuidad
+                this.scene.time.delayedCall(1500, () => {
+                    // Verificación de seguridad: que la escena siga activa y no estemos en Game Over
+                    if (this.scene && !this.scene.isGameOver && p.isDead) {
                         p.respawn();
                     }
                 });
             }
         } else {
+            // Si lives es 0 o indefinido por error, Game Over directo
             this.triggerGameOver();
         }
     }
 
     /**
-     * Finaliza la lógica del juego.
+     * Finaliza la lógica del jugador y emite el evento global de derrota.
      */
     triggerGameOver() {
+        // Aseguramos que la flag de la escena esté arriba
         if (this.scene) {
             this.scene.isGameOver = true;
-            
-            // Efecto de cámara lenta al morir definitivamente
-            this.scene.time.timeScale = 0.5;
-            this.scene.time.delayedCall(1000, () => {
-                this.scene.time.timeScale = 1;
-                this.scene.events.emit(EVENTS.GAME_OVER);
-            });
+            this.scene.events.emit(EVENTS.GAME_OVER);
         }
     }
 
     /**
      * Incrementa el contador de vidas.
+     * @param {number} amount 
      */
     addLife(amount = 1) {
         if (this.scene.lives === undefined) this.scene.lives = 3;
         this.scene.lives += amount;
-        
-        // Efecto de "PowerUp" visual
-        if (this.fx) this.fx.orbitalRing(this.player.x, this.player.y);
-        
         this.scene.events.emit(EVENTS.LIFE_CHANGE, this.scene.lives);
     }
 }

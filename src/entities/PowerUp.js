@@ -73,6 +73,13 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
 
         this.scene.events.emit('powerup-collected', displayName);
 
+        // NUEVO: Emitir evento para aura visual
+        this.scene.events.emit('powerup-activated', {
+            type: this.config.type,
+            duration: this.config.duration || 5000,
+            key: this.config.key
+        });
+
         // Feedback sonoro (seguro)
         if (this.scene.sound && this.scene.sound.get('sfx_pickup')) {
             this.scene.sound.play('sfx_pickup');
