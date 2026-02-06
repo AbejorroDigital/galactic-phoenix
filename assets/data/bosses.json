@@ -3,8 +3,8 @@
     "void_reaver": {
       "name": "Void Reaver",
       "sprite": "boss_1",
-      "health": 3000,
-      "hp": 3000,
+      "health": 5000,
+      "hp": 5000,
       "speed": 80,
       "behavior": "vertical_bounce",
       "visual_scale": 1.0,
@@ -30,8 +30,8 @@
     "nebula_titan": {
       "name": "Nebula Titan",
       "sprite": "boss_2",
-      "health": 3500,
-      "hp": 3500,
+      "health": 5500,
+      "hp": 5500,
       "speed": 60,
       "behavior": "figure_eight",
       "visual_scale": 1.2,
