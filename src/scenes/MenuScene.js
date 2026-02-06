@@ -87,9 +87,131 @@ export default class MenuScene extends Phaser.Scene {
             repeat: -1
         });
 
+
         // Space key shortcut
         this.input.keyboard.once('keydown-SPACE', () => {
             this.startGame();
+        });
+
+        // Debug Level Selector
+        // Usar configuración global
+        if (window.DEBUG_MODE === true) {
+            this.setupLevelSelector();
+        }
+    }
+
+    /**
+     * Configura el detector de combo de teclas para el selector de niveles.
+     */
+    setupLevelSelector() {
+        if (!window.DEBUG_KEYS) return;
+
+        const keys = this.input.keyboard.addKeys({
+            KEY1: window.DEBUG_KEYS.LEVEL_SELECT_1, // D
+            KEY2: window.DEBUG_KEYS.LEVEL_SELECT_2, // B
+            KEY3: window.DEBUG_KEYS.LEVEL_SELECT_3  // G
+        });
+
+        this.input.keyboard.on('keydown', () => {
+            if (keys.KEY1.isDown && keys.KEY2.isDown && keys.KEY3.isDown) {
+                this.showLevelSelectorUI();
+            }
+        });
+    }
+
+    /**
+     * Muestra la interfaz gráfica para selección directa de niveles.
+     */
+    showLevelSelectorUI() {
+        // Overlay semitransparente
+        const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.9)
+            .setInteractive()
+            .setDepth(1000);
+
+        const title = this.add.text(400, 100, 'DEBUG: NIVEL DIRECTO', {
+            fontSize: '32px',
+            fontFamily: 'ZenDots',
+            color: '#FFD700'
+        }).setOrigin(0.5).setDepth(1001);
+
+        const instruction = this.add.text(400, 140, 'Click para iniciar nivel', {
+            fontSize: '16px',
+            color: '#AAAAAA'
+        }).setOrigin(0.5).setDepth(1001);
+
+        // Grid de botones para niveles 1-7
+        const startX = 200;
+        const startY = 200;
+        const gapX = 200;
+        const gapY = 80;
+
+        for (let i = 1; i <= 7; i++) {
+            const row = Math.floor((i - 1) / 3);
+            const col = (i - 1) % 3;
+            const x = startX + col * gapX;
+            const y = startY + row * gapY;
+
+            this.createLevelButton(i, x, y);
+        }
+
+        // Botón de cerrar
+        const closeBtn = this.add.text(400, 500, '[ CERRAR ]', {
+            fontSize: '20px',
+            color: '#FF0000'
+        }).setOrigin(0.5).setInteractive().setDepth(1001);
+
+        closeBtn.on('pointerdown', () => {
+            this.scene.restart(); // Reinicia la escena para limpiar UI
+        });
+    }
+
+    /**
+     * Crea un botón individual para el selector de niveles.
+     */
+    createLevelButton(levelNum, x, y) {
+        const bg = this.add.rectangle(x, y, 160, 50, 0x333333)
+            .setStrokeStyle(2, 0x00FF00)
+            .setInteractive({ useHandCursor: true })
+            .setDepth(1001);
+
+        const label = this.add.text(x, y, `NIVEL ${levelNum}`, {
+            fontSize: '20px',
+            fontFamily: 'ZenDots',
+            color: '#FFFFFF'
+        }).setOrigin(0.5).setDepth(1001);
+
+        bg.on('pointerover', () => {
+            bg.setFillStyle(0x005500);
+            label.setScale(1.1);
+        });
+
+        bg.on('pointerout', () => {
+            bg.setFillStyle(0x333333);
+            label.setScale(1.0);
+        });
+
+        bg.on('pointerdown', () => {
+            this.startDirectLevel(levelNum);
+        });
+    }
+
+    /**
+     * Inicia el juego directamente en el nivel seleccionado.
+     */
+    startDirectLevel(levelNum) {
+        if (this.introMusic) {
+            this.introMusic.stop();
+        }
+
+        const levelKey = `level_${levelNum}`;
+        console.log(`[DEBUG] Iniciando ${levelKey}`);
+
+        // Iniciar GameScene con configuración de debug simulada
+        this.scene.start(SCENES.GAME, {
+            levelKey: levelKey,
+            lives: 3,
+            score: 0,
+            weapon: 'basic_cannon'
         });
     }
 

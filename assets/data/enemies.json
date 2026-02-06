@@ -42,6 +42,140 @@
         "fisico": 0.7,
         "plasma": 0.8
       }
+    },
+    "stealth_fighter": {
+      "sprite": "enemy4",
+      "health": 25,
+      "speed": 180,
+      "score": 150,
+      "weapon": "plasma_ball",
+      "pattern": "zigzag",
+      "fire_rate": 1800,
+      "visual_scale": 0.45,
+      "resistances": {
+        "laser": 1.0,
+        "fisico": 0.9
+      }
+    },
+    "plasma_corvette": {
+      "sprite": "enemy5",
+      "health": 35,
+      "speed": 120,
+      "score": 250,
+      "weapon": "plasma_repeater",
+      "pattern": "sine_wave",
+      "fire_rate": 1200,
+      "visual_scale": 0.5,
+      "resistances": {
+        "laser": 0.7,
+        "fisico": 1.1,
+        "plasma": 0.6
+      }
+    },
+    "shield_bearer": {
+      "sprite": "enemy6",
+      "health": 50,
+      "speed": 80,
+      "score": 300,
+      "weapon": "enemy_laser",
+      "pattern": "linear",
+      "fire_rate": 1500,
+      "visual_scale": 0.55,
+      "resistances": {
+        "laser": 0.4,
+        "fisico": 0.5,
+        "plasma": 0.6
+      }
+    },
+    "void_hunter": {
+      "sprite": "enemy7",
+      "health": 40,
+      "speed": 140,
+      "score": 350,
+      "weapon": "ion_disruptor",
+      "pattern": "pursuit",
+      "fire_rate": 1400,
+      "visual_scale": 0.5,
+      "resistances": {
+        "laser": 0.8,
+        "fisico": 0.9,
+        "ionico": 0.5
+      }
+    },
+    "assault_cruiser": {
+      "sprite": "enemy8",
+      "health": 45,
+      "speed": 200,
+      "score": 400,
+      "weapon": "enemy_laser",
+      "pattern": "burst_speed",
+      "fire_rate": 1100,
+      "visual_scale": 0.52,
+      "resistances": {
+        "laser": 0.9,
+        "fisico": 0.8
+      }
+    },
+    "heavy_destroyer": {
+      "sprite": "enemy9",
+      "health": 60,
+      "speed": 100,
+      "score": 500,
+      "weapon": "plasma_ball",
+      "pattern": "circular",
+      "fire_rate": 900,
+      "visual_scale": 0.6,
+      "resistances": {
+        "laser": 0.6,
+        "fisico": 0.6,
+        "plasma": 0.7
+      }
+    },
+    "nebula_wraith": {
+      "sprite": "enemy10",
+      "health": 55,
+      "speed": 130,
+      "score": 600,
+      "weapon": "plasma_ball",
+      "pattern": "wave_complex",
+      "fire_rate": 1300,
+      "visual_scale": 0.53,
+      "resistances": {
+        "laser": 0.7,
+        "fisico": 0.8,
+        "plasma": 0.5
+      }
+    },
+    "titan_interceptor": {
+      "sprite": "enemy11",
+      "health": 70,
+      "speed": 160,
+      "score": 700,
+      "weapon": "laser_cannon",
+      "pattern": "pursuit",
+      "fire_rate": 1000,
+      "visual_scale": 0.58,
+      "resistances": {
+        "laser": 0.5,
+        "fisico": 0.7,
+        "plasma": 0.8
+      }
+    },
+    "omega_destroyer": {
+      "sprite": "enemy12",
+      "health": 80,
+      "speed": 110,
+      "score": 800,
+      "weapon": "laser_cannon",
+      "pattern": "burst_speed",
+      "fire_rate": 800,
+      "visual_scale": 0.65,
+      "resistances": {
+        "laser": 0.4,
+        "fisico": 0.5,
+        "plasma": 0.6,
+        "ionico": 0.7
+      }
     }
   }
 }

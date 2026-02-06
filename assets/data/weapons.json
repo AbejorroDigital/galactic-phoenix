@@ -39,6 +39,21 @@
       "sprite": "shot-special2",
       "type": "ionico",
       "scale": 1.2
+    },
+    "laser_cannon": {
+      "damage": 250,
+      "speed": 400,
+      "sprite": "shot-laser",
+      "type": "laser",
+      "scale": 1.0,
+      "aimed": true
+    },
+    "plasma_burst": {
+      "damage": 180,
+      "speed": 350,
+      "sprite": "shot-special3",
+      "type": "plasma",
+      "scale": 0.9
     }
   },
   "powerups": {

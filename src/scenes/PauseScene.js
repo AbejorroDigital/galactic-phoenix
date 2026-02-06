@@ -120,10 +120,16 @@ export default class PauseScene extends Phaser.Scene {
      * Stops all active gameplay scenes and transitions to the MenuScene.
      */
     quitToMenu() {
+        // Safe Audio Shutdown
+        const gameScene = this.scene.get(SCENES.GAME);
+        if (gameScene && gameScene.audioManager) {
+            gameScene.audioManager.stopMusic(200);
+        }
+
         // Stop game scene
         this.scene.stop(SCENES.GAME);
         this.scene.stop(SCENES.UI);
-        this.scene.stop();
+        this.scene.stop(); // Stop self
 
         // Start menu
         this.scene.start(SCENES.MENU);

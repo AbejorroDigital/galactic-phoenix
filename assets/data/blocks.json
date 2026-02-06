@@ -206,5 +206,665 @@
       "isBoss": true,
       "y": 300
     }
+  ],
+  "stealth_ambush": [
+    {
+      "time": 500,
+      "enemyId": "stealth_fighter",
+      "y": 150
+    },
+    {
+      "time": 1000,
+      "enemyId": "stealth_fighter",
+      "y": 450
+    },
+    {
+      "time": 1500,
+      "enemyId": "plasma_corvette",
+      "y": 300
+    },
+    {
+      "time": 2200,
+      "enemyId": "stealth_fighter",
+      "y": 200
+    },
+    {
+      "time": 2200,
+      "enemyId": "stealth_fighter",
+      "y": 400
+    }
+  ],
+  "shield_wall": [
+    {
+      "time": 500,
+      "enemyId": "shield_bearer",
+      "y": 200
+    },
+    {
+      "time": 500,
+      "enemyId": "shield_bearer",
+      "y": 400
+    },
+    {
+      "time": 1500,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 1500,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    },
+    {
+      "time": 2500,
+      "enemyId": "shield_bearer",
+      "y": 300
+    }
+  ],
+  "plasma_assault": [
+    {
+      "time": 500,
+      "enemyId": "plasma_corvette",
+      "y": 100
+    },
+    {
+      "time": 800,
+      "enemyId": "plasma_corvette",
+      "y": 300
+    },
+    {
+      "time": 1100,
+      "enemyId": "plasma_corvette",
+      "y": 500
+    },
+    {
+      "time": 1500,
+      "enemyId": "plasma_corvette",
+      "y": 200
+    },
+    {
+      "time": 1800,
+      "enemyId": "plasma_corvette",
+      "y": 400
+    },
+    {
+      "time": 2200,
+      "enemyId": "plasma_corvette",
+      "y": 150
+    }
+  ],
+  "mixed_tactical": [
+    {
+      "time": 500,
+      "enemyId": "stealth_fighter",
+      "y": 100
+    },
+    {
+      "time": 1000,
+      "enemyId": "plasma_corvette",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "shield_bearer",
+      "y": 500
+    },
+    {
+      "time": 2000,
+      "enemyId": "stealth_fighter",
+      "y": 200
+    },
+    {
+      "time": 2500,
+      "enemyId": "plasma_corvette",
+      "y": 400
+    }
+  ],
+  "void_pursuit": [
+    {
+      "time": 500,
+      "enemyId": "void_hunter",
+      "y": 300
+    },
+    {
+      "time": 1200,
+      "enemyId": "void_hunter",
+      "y": 150
+    },
+    {
+      "time": 1200,
+      "enemyId": "void_hunter",
+      "y": 450
+    },
+    {
+      "time": 2000,
+      "enemyId": "assault_drone_beta",
+      "y": 100
+    },
+    {
+      "time": 2000,
+      "enemyId": "assault_drone_beta",
+      "y": 500
+    }
+  ],
+  "burst_attack": [
+    {
+      "time": 500,
+      "enemyId": "assault_cruiser",
+      "y": 200
+    },
+    {
+      "time": 1000,
+      "enemyId": "assault_cruiser",
+      "y": 400
+    },
+    {
+      "time": 1500,
+      "enemyId": "assault_cruiser",
+      "y": 100
+    },
+    {
+      "time": 2000,
+      "enemyId": "assault_cruiser",
+      "y": 500
+    },
+    {
+      "time": 2500,
+      "enemyId": "assault_cruiser",
+      "y": 300
+    }
+  ],
+  "rotating_defense": [
+    {
+      "time": 500,
+      "enemyId": "heavy_destroyer",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "heavy_tank_omega",
+      "y": 150
+    },
+    {
+      "time": 1500,
+      "enemyId": "heavy_tank_omega",
+      "y": 450
+    },
+    {
+      "time": 2500,
+      "enemyId": "heavy_destroyer",
+      "y": 250
+    },
+    {
+      "time": 2500,
+      "enemyId": "heavy_destroyer",
+      "y": 350
+    }
+  ],
+  "elite_squadron": [
+    {
+      "time": 500,
+      "enemyId": "void_hunter",
+      "y": 200
+    },
+    {
+      "time": 800,
+      "enemyId": "assault_cruiser",
+      "y": 400
+    },
+    {
+      "time": 1200,
+      "enemyId": "heavy_destroyer",
+      "y": 300
+    },
+    {
+      "time": 1800,
+      "enemyId": "void_hunter",
+      "y": 100
+    },
+    {
+      "time": 2200,
+      "enemyId": "assault_cruiser",
+      "y": 500
+    }
+  ],
+  "nebula_storm": [
+    {
+      "time": 500,
+      "enemyId": "nebula_wraith",
+      "y": 150
+    },
+    {
+      "time": 1000,
+      "enemyId": "nebula_wraith",
+      "y": 450
+    },
+    {
+      "time": 1500,
+      "enemyId": "nebula_wraith",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "nebula_wraith",
+      "y": 200
+    },
+    {
+      "time": 2500,
+      "enemyId": "nebula_wraith",
+      "y": 400
+    }
+  ],
+  "titan_rush": [
+    {
+      "time": 500,
+      "enemyId": "titan_interceptor",
+      "y": 250
+    },
+    {
+      "time": 1200,
+      "enemyId": "titan_interceptor",
+      "y": 350
+    },
+    {
+      "time": 2000,
+      "enemyId": "titan_interceptor",
+      "y": 150
+    },
+    {
+      "time": 2800,
+      "enemyId": "titan_interceptor",
+      "y": 450
+    }
+  ],
+  "omega_blockade": [
+    {
+      "time": 500,
+      "enemyId": "omega_destroyer",
+      "y": 200
+    },
+    {
+      "time": 500,
+      "enemyId": "omega_destroyer",
+      "y": 400
+    },
+    {
+      "time": 2000,
+      "enemyId": "heavy_destroyer",
+      "y": 100
+    },
+    {
+      "time": 2000,
+      "enemyId": "heavy_destroyer",
+      "y": 300
+    },
+    {
+      "time": 2000,
+      "enemyId": "heavy_destroyer",
+      "y": 500
+    }
+  ],
+  "advanced_formation": [
+    {
+      "time": 500,
+      "enemyId": "nebula_wraith",
+      "y": 300
+    },
+    {
+      "time": 800,
+      "enemyId": "titan_interceptor",
+      "y": 200
+    },
+    {
+      "time": 800,
+      "enemyId": "titan_interceptor",
+      "y": 400
+    },
+    {
+      "time": 1200,
+      "enemyId": "omega_destroyer",
+      "y": 100
+    },
+    {
+      "time": 1200,
+      "enemyId": "omega_destroyer",
+      "y": 500
+    }
+  ],
+  "chaos_surge": [
+    {
+      "time": 500,
+      "enemyId": "interceptor_alpha",
+      "y": 150
+    },
+    {
+      "time": 700,
+      "enemyId": "void_hunter",
+      "y": 450
+    },
+    {
+      "time": 900,
+      "enemyId": "assault_cruiser",
+      "y": 300
+    },
+    {
+      "time": 1100,
+      "enemyId": "heavy_tank_omega",
+      "y": 200
+    },
+    {
+      "time": 1300,
+      "enemyId": "nebula_wraith",
+      "y": 400
+    },
+    {
+      "time": 1500,
+      "enemyId": "titan_interceptor",
+      "y": 250
+    },
+    {
+      "time": 1700,
+      "enemyId": "shield_bearer",
+      "y": 350
+    }
+  ],
+  "speed_trial": [
+    {
+      "time": 500,
+      "enemyId": "assault_cruiser",
+      "y": 150
+    },
+    {
+      "time": 800,
+      "enemyId": "assault_cruiser",
+      "y": 450
+    },
+    {
+      "time": 1100,
+      "enemyId": "titan_interceptor",
+      "y": 250
+    },
+    {
+      "time": 1400,
+      "enemyId": "assault_cruiser",
+      "y": 350
+    },
+    {
+      "time": 1700,
+      "enemyId": "titan_interceptor",
+      "y": 100
+    },
+    {
+      "time": 2000,
+      "enemyId": "titan_interceptor",
+      "y": 500
+    }
+  ],
+  "tank_destroyer": [
+    {
+      "time": 500,
+      "enemyId": "omega_destroyer",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "heavy_destroyer",
+      "y": 150
+    },
+    {
+      "time": 1500,
+      "enemyId": "heavy_destroyer",
+      "y": 450
+    },
+    {
+      "time": 2500,
+      "enemyId": "shield_bearer",
+      "y": 200
+    },
+    {
+      "time": 2500,
+      "enemyId": "shield_bearer",
+      "y": 400
+    }
+  ],
+  "bullet_hell": [
+    {
+      "time": 500,
+      "enemyId": "assault_drone_beta",
+      "y": 100
+    },
+    {
+      "time": 700,
+      "enemyId": "plasma_corvette",
+      "y": 200
+    },
+    {
+      "time": 900,
+      "enemyId": "void_hunter",
+      "y": 300
+    },
+    {
+      "time": 1100,
+      "enemyId": "assault_cruiser",
+      "y": 400
+    },
+    {
+      "time": 1300,
+      "enemyId": "nebula_wraith",
+      "y": 500
+    },
+    {
+      "time": 1500,
+      "enemyId": "titan_interceptor",
+      "y": 150
+    },
+    {
+      "time": 1700,
+      "enemyId": "omega_destroyer",
+      "y": 350
+    }
+  ],
+  "final_gauntlet_1": [
+    {
+      "time": 500,
+      "enemyId": "interceptor_alpha",
+      "y": 100
+    },
+    {
+      "time": 600,
+      "enemyId": "interceptor_alpha",
+      "y": 500
+    },
+    {
+      "time": 800,
+      "enemyId": "assault_drone_beta",
+      "y": 200
+    },
+    {
+      "time": 900,
+      "enemyId": "assault_drone_beta",
+      "y": 400
+    },
+    {
+      "time": 1100,
+      "enemyId": "heavy_tank_omega",
+      "y": 300
+    },
+    {
+      "time": 1400,
+      "enemyId": "stealth_fighter",
+      "y": 150
+    },
+    {
+      "time": 1500,
+      "enemyId": "stealth_fighter",
+      "y": 450
+    },
+    {
+      "time": 1700,
+      "enemyId": "plasma_corvette",
+      "y": 250
+    },
+    {
+      "time": 1900,
+      "enemyId": "shield_bearer",
+      "y": 350
+    }
+  ],
+  "final_gauntlet_2": [
+    {
+      "time": 500,
+      "enemyId": "void_hunter",
+      "y": 150
+    },
+    {
+      "time": 700,
+      "enemyId": "void_hunter",
+      "y": 450
+    },
+    {
+      "time": 900,
+      "enemyId": "assault_cruiser",
+      "y": 250
+    },
+    {
+      "time": 1100,
+      "enemyId": "assault_cruiser",
+      "y": 350
+    },
+    {
+      "time": 1300,
+      "enemyId": "heavy_destroyer",
+      "y": 200
+    },
+    {
+      "time": 1500,
+      "enemyId": "nebula_wraith",
+      "y": 400
+    },
+    {
+      "time": 1700,
+      "enemyId": "titan_interceptor",
+      "y": 100
+    },
+    {
+      "time": 1900,
+      "enemyId": "titan_interceptor",
+      "y": 500
+    },
+    {
+      "time": 2100,
+      "enemyId": "omega_destroyer",
+      "y": 300
+    }
+  ],
+  "ultimate_test": [
+    {
+      "time": 500,
+      "enemyId": "void_hunter",
+      "y": 150
+    },
+    {
+      "time": 600,
+      "enemyId": "assault_cruiser",
+      "y": 450
+    },
+    {
+      "time": 800,
+      "enemyId": "heavy_destroyer",
+      "y": 250
+    },
+    {
+      "time": 1000,
+      "enemyId": "nebula_wraith",
+      "y": 350
+    },
+    {
+      "time": 1200,
+      "enemyId": "titan_interceptor",
+      "y": 100
+    },
+    {
+      "time": 1400,
+      "enemyId": "omega_destroyer",
+      "y": 500
+    },
+    {
+      "time": 1600,
+      "enemyId": "titan_interceptor",
+      "y": 200
+    },
+    {
+      "time": 1800,
+      "enemyId": "omega_destroyer",
+      "y": 400
+    }
+  ],
+  "boss_approach": [
+    {
+      "time": 500,
+      "enemyId": "omega_destroyer",
+      "y": 200
+    },
+    {
+      "time": 500,
+      "enemyId": "omega_destroyer",
+      "y": 400
+    },
+    {
+      "time": 1500,
+      "enemyId": "titan_interceptor",
+      "y": 150
+    },
+    {
+      "time": 1500,
+      "enemyId": "titan_interceptor",
+      "y": 300
+    },
+    {
+      "time": 1500,
+      "enemyId": "titan_interceptor",
+      "y": 450
+    }
+  ],
+  "boss_encounter_3": [
+    {
+      "time": 2000,
+      "bossId": "boss_evilbyice",
+      "isBoss": true,
+      "y": 300
+    }
+  ],
+  "boss_encounter_4": [
+    {
+      "time": 2000,
+      "bossId": "boss_eyeugly",
+      "isBoss": true,
+      "y": 300
+    }
+  ],
+  "boss_encounter_5": [
+    {
+      "time": 2000,
+      "bossId": "boss_goldenbro",
+      "isBoss": true,
+      "y": 300
+    }
+  ],
+  "boss_encounter_6": [
+    {
+      "time": 2000,
+      "bossId": "boss_rixter",
+      "isBoss": true,
+      "y": 300
+    }
+  ],
+  "boss_encounter_7": [
+    {
+      "time": 2000,
+      "bossId": "carlos_boss",
+      "isBoss": true,
+      "y": 300
+    }
   ]
 }

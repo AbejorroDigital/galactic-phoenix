@@ -1,4 +1,5 @@
 import { DEPTH, EVENTS, SCENES } from '../core/Constants.js';
+import DamageText from '../effects/DamageText.js';
 import ExplosionEffect from '../effects/ExplosionEffect.js';
 import Boss from '../entities/Boss.js';
 import Enemy from '../entities/Enemy.js';
@@ -6,6 +7,7 @@ import Player from '../entities/Player.js';
 import PowerUp from '../entities/PowerUp.js';
 import Projectile from '../entities/Projectile.js';
 import AudioManager from '../managers/AudioManager.js';
+import DebugManager from '../managers/DebugManager.js';
 import LevelManager from '../managers/LevelManager.js';
 
 
@@ -112,24 +114,116 @@ export default class GameScene extends Phaser.Scene {
         this.levelManager = new LevelManager(this);
         this.levelManager.init(this.currentLevelKey);
 
+
+
         this.setupCollisions();
 
         // Escuchar destrucción de enemigos para efectos
         this.events.on(EVENTS.ENEMY_DESTROYED, (x, y, isBoss) => {
             if (isBoss) {
                 ExplosionEffect.createBossExplosion(this, x, y);
-                this.audioManager.playSFX('sfx_boss_explosion', { volume: 0.8 });
+                // AUDIO: Boss Death -> Fade out boss music -> Play Victory
+                if (this.audioManager) {
+                    this.audioManager.stopMusic(1000); // Fade out ominous_boss
+                    this.time.delayedCall(200, () => {
+                        this.audioManager.playSFX('exito', { volume: 0.9 });
+                        this.audioManager.playSFX('sfx_boss_explosion', { volume: 0.9 });
+                    });
+                }
             } else {
                 ExplosionEffect.createSmallExplosion(this, x, y);
                 this.audioManager.playSFX('sfx_enemy_explosion', { volume: 0.4 });
             }
         });
 
-        this.events.once(EVENTS.LEVEL_FINISHED, () => {
-            this.time.delayedCall(2000, () => this.goToNextLevel());
+        // Escuchar aparición de jefe para reproducir audio ominoso
+        this.events.on('BOSS_SPAWNED', (data) => {
+            if (this.audioManager) {
+                // AUDIO: Stop Level Music Immediately -> Start Boss Loop
+                // Forzamos stop inmediato (0ms match) para dar impacto
+                this.audioManager.stopMusic(200);
+                this.time.delayedCall(200, () => {
+                    this.audioManager.playMusic('ominous_boss', true, 500);
+                });
+            }
         });
 
+        // ==========================================
+        // DEBUG MANAGER INITIALIZATION (LATE BINDING)
+        // ==========================================
+        // Se inicializa al final para garantizar acceso a physics, cameras y eventos
+        if (window.DEBUG_MODE === false) {
+            try {
+                this.debugManager = new DebugManager(this);
+                // Forzar activación inicial si es necesario
+                if (this.debugManager.enabled) {
+                    this.debugManager.showDebugUI();
+                    this.debugManager.renderHitboxes();
+                }
+            } catch (err) {
+                console.error('Error inicializando DebugManager:', err);
+            }
+        }
+
+        // ========== SISTEMA DE FEEDBACK VISUAL ==========
+        // Listener para números de daño flotantes y flares de impacto
+        this.events.on(EVENTS.DAMAGE_DEALT, (data) => {
+            // Crear número de daño flotante usando DamageText (con safe fallback)
+            try {
+                new DamageText(this, data.x, data.y, data.amount, data.isCritical);
+            } catch (error) {
+                console.warn('Error al crear DamageText:', error);
+            }
+
+            // Crear destello de impacto con flare.png
+            try {
+                ExplosionEffect.createHitFlare(this, data.x, data.y, data.damageType);
+            } catch (error) {
+                console.warn('Error al crear Hit Flare:', error);
+            }
+        });
+
+        // Listener para aura de powerup
+        this.events.on(EVENTS.POWERUP_ACTIVATED, (data) => {
+            if (this.player && this.player.showPowerupAura) {
+                this.player.showPowerupAura(data.type, data.duration);
+            }
+
+            // Power-Up Audio Logic
+            if (this.audioManager) {
+                if (data.type === 'vida' || data.type === 'health') {
+                    this.audioManager.playSFX('powerupExtraLife');
+                } else {
+                    // Default for shields/weapons
+                    this.audioManager.playSFX('powerup1');
+                }
+            }
+        });
+
+        // Usamos 'on' y verificamos duplicados manualmente para mayor seguridad
+        this.events.off(EVENTS.LEVEL_FINISHED);
+        this.events.on(EVENTS.LEVEL_FINISHED, () => {
+            console.log('[GameScene] LEVEL_FINISHED received. Starting transition timer...');
+
+            // Si ya estamos transicionando, ignorar
+            if (this.isTransitioning) return;
+
+            // Usar un timer con nombre para evitar cancelación accidental
+            this.levelFinishTimer = this.time.addEvent({
+                delay: 4000,
+                callback: () => {
+                    console.log('[GameScene] Timer finished. Calling goToNextLevel.');
+                    this.goToNextLevel();
+                },
+                callbackScope: this
+            });
+        });
+
+        // Listen for GAME_OVER unconditionally
+        // This must override any level finished logic
+        this.events.off(EVENTS.GAME_OVER); // Prevent duplicates
         this.events.once(EVENTS.GAME_OVER, () => {
+            console.log('[GameScene] GAME_OVER event received.');
             this.handleGameOver();
         });
 
@@ -153,7 +247,11 @@ export default class GameScene extends Phaser.Scene {
      * Pausa el juego.
      */
     pauseGame() {
-        this.physics.pause();
+        if (!this.scene.isActive(SCENES.GAME)) return;
+
+        if (this.physics && this.physics.world) {
+            this.physics.pause();
+        }
         if (this.audioManager) {
             // Pausar música (reducir volumen)
             if (this.audioManager.currentMusic) {
@@ -185,38 +283,68 @@ export default class GameScene extends Phaser.Scene {
      * Muestra la pantalla de Game Over y detiene la lógica del juego.
      */
     handleGameOver() {
-    if (this.isGameOver) return;
+        // Priority Check: If level transition (fade out) has already started, ignore death (player 'escaped')
+        if (this.isTransitioning) {
+            console.log('[GameScene] Player died during transition - Ignoring Game Over.');
+            return;
+        }
 
-    this.isGameOver = true;
-    
-    // 1. Detener el mundo físico y el scroll
-    this.physics.pause();
-    this.bgScrollSpeed = 0;
+        if (this.isGameOver) return;
 
-    // 2. Desactivar al jugador por completo para evitar respawns fantasma
-    if (this.player) {
-        this.player.setActive(false);
-        this.player.setVisible(false);
-        if (this.player.body) this.player.body.enable = false;
-        // Importante: cancelar cualquier temporizador de respawn pendiente
-        this.time.removeAllEvents(); 
+        this.isGameOver = true;
+        console.log('[GameScene] Handling Game Over...');
+
+        // CRITICAL: Stop Level Finish Timer immediately to prevent 'Level Completed' overlap
+        if (this.levelFinishTimer) {
+            console.log('[GameScene] Cancelling Level Finish Timer.');
+            this.levelFinishTimer.remove();
+            this.levelFinishTimer = null;
+        }
+
+        // 1. Detener el mundo físico y el scroll
+        this.physics.pause();
+        this.bgScrollSpeed = 0;
+
+        // 2. Desactivar al jugador por completo para evitar respawns fantasma
+        if (this.player) {
+            this.player.setActive(false);
+            this.player.setVisible(false);
+            if (this.player.body) this.player.body.enable = false;
+            // Importante: cancelar cualquier temporizador de respawn pendiente
+            this.time.removeAllEvents();
+        }
+
+        if (this.levelManager) this.levelManager.isLevelRunning = false;
+
+        // 3. Audio: Detener música ABSOLUTAMENTE antes del Game Over SFX
+        // "Stop All" fulminante como solicitado
+        if (this.audioManager) {
+            this.audioManager.stopAll(); // Silencio total inmediato
+            // Pequeño delay dramático solo para el SFX
+            this.time.delayedCall(100, () => {
+                this.audioManager.playSFX('sfx_gameover', { volume: 0.8 });
+            });
+        }
+
+        // 4. Comunicación con la UI
+        this.events.emit('SHOW_GAME_OVER_PANEL');
+        this.scene.launch(SCENES.UI, { gameOver: true });
+
+        // 5. FAILSAFE DE TRANSICIÓN
+        // Si tras 3 segundos no ha pasado nada (la escena UI no cargó o algo se colgó), forzamos.
+        // Esto asegura que la pantalla de Game Over aparezca sí o sí.
+        this.time.delayedCall(3000, () => {
+            console.log('[GameScene] Failsafe: Ensuring Game Over UI is active.');
+            if (this.scene.isActive(SCENES.GAME)) {
+                // Ensure UI is up
+                if (!this.scene.isActive(SCENES.UI)) {
+                    this.scene.launch(SCENES.UI, { gameOver: true });
+                }
+                // Force pause explicitly if not already
+                this.scene.pause(SCENES.GAME);
+            }
+        });
     }
-
-    if (this.levelManager) this.levelManager.isLevelRunning = false;
-    
-    // 3. Audio: Detener música y lanzar efecto de derrota
-    if (this.audioManager) {
-        this.audioManager.stopMusic(500);
-        this.audioManager.playSFX('sfx_gameover', { volume: 0.8 });
-    }
-
-    // 4. Comunicación con la UI
-    // En lugar de launch (que puede fallar si ya está activa), usamos events
-    this.events.emit('SHOW_GAME_OVER_PANEL'); 
-    
-    // O si prefieres mantener el sistema de paso de datos, asegúrate de que UIScene escuche 'wake'
-    this.scene.launch(SCENES.UI, { gameOver: true });
-}
 
     /**
      * Configura el fondo con tiles animados.
@@ -321,6 +449,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.player.update(this.cursors, time);
         if (this.levelManager) this.levelManager.update(time, delta);
+        if (this.debugManager) this.debugManager.update();
     }
 
     /**
@@ -328,7 +457,19 @@ export default class GameScene extends Phaser.Scene {
      * Maneja el desvanecimiento de la cámara y el reinicio del nivel.
      */
     goToNextLevel() {
+        console.log('[GameScene] goToNextLevel called.');
+        if (this.isTransitioning) {
+            console.warn('[GameScene] Already transitioning. Ignoring call.');
+            return;
+        }
+
         this.isTransitioning = true;
+
+        // Cancelar el timer si se disparó manualmente para evitar doble llamada
+        if (this.levelFinishTimer) {
+            this.levelFinishTimer.remove();
+            this.levelFinishTimer = null;
+        }
 
         if (this.player) {
             this.player.canShoot = false;
@@ -362,37 +503,46 @@ export default class GameScene extends Phaser.Scene {
             });
         }
 
-        // Desvanecer música
+        // Desvanecer música (Fire and Forget - No esperar callback)
         if (this.audioManager) {
             this.audioManager.stopMusic(500);
         }
 
+        // La transición depende EXCLUSIVAMENTE de la cámara, no del audio
         this.cameras.main.fadeOut(1000, 0, 0, 0);
-        if (this.cameras.main.once) {
-            this.cameras.main.once('camerafadeoutcomplete', () => {
-                this.finalizeLevelTransition();
-            });
-        } else {
-            // Fallback para mocks de test
+        this.cameras.main.once('camerafadeoutcomplete', () => {
             this.finalizeLevelTransition();
-        }
+        });
     }
 
     /**
      * Finaliza la transición del nivel, cambiando al siguiente mapa o volviendo al menú.
      */
     finalizeLevelTransition() {
-        if (this.currentLevelKey === 'level_2') {
-            // Si terminamos el nivel 2, volvemos al menú principal
-            this.scene.stop(SCENES.UI);
-            this.scene.start(SCENES.MENU);
-        } else {
-            // De lo contrario, pasamos al siguiente nivel (nivel 2)
-            const nextLevel = 'level_2';
+        // Mapa de progresión de niveles
+        const levelProgression = {
+            'level_1': 'level_2',
+            'level_2': 'level_3',
+            'level_3': 'level_4',
+            'level_4': 'level_5',
+            'level_5': 'level_6',
+            'level_6': 'level_7',
+            'level_7': null // Final del juego
+        };
 
-            // Limpiar audio antes de cambiar nivel
-            if (this.audioManager && this.audioManager.destroy) {
+        const nextLevel = levelProgression[this.currentLevelKey];
+
+        if (nextLevel === null) {
+            // Si terminamos el nivel 7, volvemos al menú principal con victoria
+            this.scene.stop(SCENES.UI);
+            this.scene.start(SCENES.MENU, { victory: true });
+        } else {
+            // Limpiar audio STRICTLY antes de cambiar nivel
+            if (this.audioManager) {
+                this.audioManager.stopAll();
                 this.audioManager.destroy();
+            } else {
+                this.sound.stopAll();
             }
 
             this.scene.restart({ levelKey: nextLevel });
@@ -434,10 +584,19 @@ export default class GameScene extends Phaser.Scene {
      * Limpieza cuando la escena se cierra o se reinicia.
      */
     shutdown() {
+        // Stop all running tweens to prevent callbacks on destroyed objects
+        this.tweens.killAll();
+
         // Limpieza al cerrar la escena
         if (this.audioManager) {
             this.audioManager.destroy();
         }
+
+        if (this.debugManager) {
+            this.debugManager.destroy();
+            this.debugManager = null;
+        }
+
         // Limpiar evento global para evitar duplicados al reiniciar
         if (this.onGameBlur) {
             this.game.events.off('blur', this.onGameBlur);

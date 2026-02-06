@@ -23,11 +23,15 @@ export default class Player extends Entity {
         this.shield = data.base_shields || 0;
         this.maxShield = data.base_shields || 0;
         this.currentWeapon = data.starting_weapon || 'basic_cannon';
-        
+
         this.isDead = false;
         this.isInvulnerable = false;
         this.lastFired = 0;
         this.canShoot = true;
+
+        // --- Sistema de Aura de PowerUp ---
+        this.powerupAura = null;
+        this.powerupAuraTween = null;
 
         // --- Módulos Auxiliares ---
         this.vfx = new PlayerVFX(this);
@@ -59,6 +63,11 @@ export default class Player extends Entity {
         if (cursors.space.isDown && this.canShoot && time > this.lastFired) {
             this.shoot(time);
         }
+
+        // Sincronizar posición del aura si existe
+        if (this.powerupAura && this.powerupAura.active) {
+            this.powerupAura.setPosition(this.x, this.y);
+        }
     }
 
     shoot(time) {
@@ -74,29 +83,29 @@ export default class Player extends Entity {
     // --- Métodos de Interfaz (Bridge para evitar crasheos) ---
 
     takeDamage(stats) { this.health.takeDamage(stats); }
-    
+
     addLife(amount = 1) { this.health.addLife(amount); }
-    
+
     // Necesario para que PlayerHealth pueda llamar al daño base de Entity
     applyBaseDamage(stats) { super.takeDamage(stats); }
 
     respawn() {
-    this.hp = this.maxHp;
-    this.isDead = false;
-    this.canShoot = true; // <--- AÑADE ESTA LÍNEA AQUÍ
-    this.setActive(true);
-    this.setVisible(true);
-    if (this.body) this.body.enable = true;
+        this.hp = this.maxHp;
+        this.isDead = false;
+        this.canShoot = true; // <--- AÑADE ESTA LÍNEA AQUÍ
+        this.setActive(true);
+        this.setVisible(true);
+        if (this.body) this.body.enable = true;
 
-    const playerData = this.scene.cache.json.get('player');
-    const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
-    this.setPosition(spawn.x, spawn.y);
+        const playerData = this.scene.cache.json.get('player');
+        const spawn = playerData?.player?.spawn_position || { x: 100, y: 300 };
+        this.setPosition(spawn.x, spawn.y);
 
-    this.vfx.startEngine();
-    this.setInvulnerable(3000);
-    this.emitStatus();
-    this.scene.events.emit(EVENTS.PLAYER_HEAL, { current: this.hp, max: this.maxHp });
-}
+        this.vfx.startEngine();
+        this.setInvulnerable(3000);
+        this.emitStatus();
+        this.scene.events.emit(EVENTS.PLAYER_HEAL, { current: this.hp, max: this.maxHp });
+    }
 
     setInvulnerable(duration) {
         this.isInvulnerable = true;
@@ -135,4 +144,60 @@ export default class Player extends Entity {
     }
 
     die() { if (!this.isDead) this.health.handleDeath(); }
+
+    /**
+     * Muestra un aura visual alrededor del jugador cuando recoge un powerup
+     * @param {string} type - Tipo de powerup (heal, shield, weapon, stat_boost)
+     * @param {number} duration - Duración del efecto en ms
+     */
+    showPowerupAura(type, duration = 5000) {
+        // Limpiar aura anterior si existe
+        this.clearPowerupAura();
+
+        // Mapeo de colores por tipo
+        const auraColors = {
+            'heal': 0x00FF00,       // Verde
+            'shield': 0x00BFFF,     // Azul cielo
+            'weapon': 0xFFD700,     // Dorado
+            'stat_boost': 0xFF00FF, // Magenta
+            'stat_mod': 0xFF00FF,   // Magenta
+            'life': 0xFFFFFF        // Blanco
+        };
+
+        const color = auraColors[type] || 0xFFFFFF;
+
+        // Crear círculo de aura
+        this.powerupAura = this.scene.add.circle(0, 0, 35, color, 0.2)
+            .setDepth(29); // DEPTH.PLAYER_AURA
+
+        // Animación de pulso
+        this.powerupAuraTween = this.scene.tweens.add({
+            targets: this.powerupAura,
+            alpha: 0.4,
+            scale: 1.1,
+            duration: 600,
+            yoyo: true,
+            repeat: Math.floor(duration / 1200)
+        });
+
+        // Auto-destrucción después de la duración
+        this.scene.time.delayedCall(duration, () => {
+            this.clearPowerupAura();
+            this.scene.events.emit('powerup-expired', { type });
+        });
+    }
+
+    /**
+     * Limpia el aura de powerup actual
+     */
+    clearPowerupAura() {
+        if (this.powerupAura) {
+            this.powerupAura.destroy();
+            this.powerupAura = null;
+        }
+        if (this.powerupAuraTween) {
+            this.powerupAuraTween.stop();
+            this.powerupAuraTween = null;
+        }
+    }
 }

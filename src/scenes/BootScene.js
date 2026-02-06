@@ -50,21 +50,33 @@ export default class BootScene extends Phaser.Scene {
         this.load.image('bg_gameover', 'assets/sprites/bg-gameover.png');
         this.load.image('bg_block', 'assets/sprites/bg-block.png');
         this.load.image('bg_block2', 'assets/sprites/bg-block2.png');
+        this.load.image('bg_block3', 'assets/sprites/bg-block3.png');
+        this.load.image('bg_block4', 'assets/sprites/bg-block4.png');
+        this.load.image('bg_block5', 'assets/sprites/bg-block5.png');
+        this.load.image('bg_block6', 'assets/sprites/bg-block6.png');
+        this.load.image('bg_block7', 'assets/sprites/bg-block7.png');
+        this.load.image('bg_block8', 'assets/sprites/bg-block8.png');
 
         // Bosses
-        this.load.image('boss_1', 'assets/sprites/doggusano-boss.png');
-        this.load.image('boss_2', 'assets/sprites/carlos-boss.png');
         this.load.image('boss_void_reaver', 'assets/sprites/boss_void_reaver.png');
         this.load.image('boss_nebula_titan', 'assets/sprites/boss_nebula_titan.png');
+        this.load.image('boss_evilbyice', 'assets/sprites/boss_evilbyice.png');
+        this.load.image('boss_eyeugly', 'assets/sprites/boss_eyeugly.png');
+        this.load.image('boss_goldenbro', 'assets/sprites/boss_goldenbro.png');
+        this.load.image('boss_rixter', 'assets/sprites/boss_rixter.png');
+        this.load.image('carlos_boss', 'assets/sprites/carlos-boss.png');
 
         // Projectiles
         this.load.image('shot-hero', 'assets/sprites/shot.png');
         this.load.image('shot-enemy', 'assets/sprites/shot-enemy.png');
         this.load.image('shot-special', 'assets/sprites/shot-special.png');
         this.load.image('shot-special2', 'assets/sprites/shot-special2.png');
+        this.load.image('shot-special3', 'assets/sprites/shot-special3.png');
+        this.load.image('shot-laser', 'assets/sprites/shot-laser.png');
 
         // Effects & UI
         this.load.image('flare', 'assets/sprites/flare.png');
+        this.load.image('alerta', 'assets/sprites/alerta.png');
         this.load.image('vida', 'assets/sprites/vida.png');
         this.load.image('powerup_orb', 'assets/sprites/powerup_orb.png');
         this.load.image('powerup_box', 'assets/sprites/powerup_box.png');
@@ -75,15 +87,34 @@ export default class BootScene extends Phaser.Scene {
         this.load.image('enemy1', 'assets/sprites/enemy1.png');
         this.load.image('enemy2', 'assets/sprites/enemy2.png');
         this.load.image('enemy3', 'assets/sprites/enemy3.png');
+        this.load.image('enemy4', 'assets/sprites/enemy4.png');
+        this.load.image('enemy5', 'assets/sprites/enemy5.png');
+        this.load.image('enemy6', 'assets/sprites/enemy6.png');
+        this.load.image('enemy7', 'assets/sprites/enemy7.png');
+        this.load.image('enemy8', 'assets/sprites/enemy8.png');
+        this.load.image('enemy9', 'assets/sprites/enemy9.png');
+        this.load.image('enemy10', 'assets/sprites/enemy10.png');
+        this.load.image('enemy11', 'assets/sprites/enemy11.png');
+        this.load.image('enemy12', 'assets/sprites/enemy12.png');
 
         // 3. --- AUDIO ---
         this.load.audio('intro_music', 'assets/sound/intro.ogg');
         this.load.audio('level1_music', 'assets/sound/level1.ogg');
         this.load.audio('level2_music', 'assets/sound/level2.ogg');
+        this.load.audio('level3_music', 'assets/sound/level3.ogg');
+        this.load.audio('level4_music', 'assets/sound/level4.ogg');
+        this.load.audio('level5_music', 'assets/sound/level5.ogg');
         this.load.audio('sfx_shot', 'assets/sound/shot.ogg');
         this.load.audio('sfx_enemy_explosion', 'assets/sound/enemy-explosion.ogg');
         this.load.audio('sfx_boss_explosion', 'assets/sound/boss-explosion.ogg');
         this.load.audio('sfx_gameover', 'assets/sound/gameover.ogg');
+        this.load.audio('ominous_boss', 'assets/sound/ominous_boss.ogg');
+        this.load.audio('exito', 'assets/sound/exito.ogg');
+        this.load.audio('derrota', 'assets/sound/derrota.ogg');
+        this.load.audio('powerup1', 'assets/sound/powerup1.ogg');
+        this.load.audio('powerup2', 'assets/sound/powerup2.ogg');
+        this.load.audio('powerup3', 'assets/sound/powerup3.ogg');
+        this.load.audio('powerupExtraLife', 'assets/sound/powerupExtraLife.ogg');
         this.load.audio('sfx_pickup', 'assets/sound/shot.ogg'); // Fallback if pickup not found
     }
 

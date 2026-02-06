@@ -22,6 +22,18 @@ export default class UIScene extends Phaser.Scene {
     }
 
     /**
+     * @param {Object} data - Initialization data.
+     * @param {boolean} [data.gameOver] - Whether to show Game Over immediately.
+     */
+    init(data) {
+        if (data && data.gameOver) {
+            this.events.once('create', () => {
+                this.showGameOverScreen();
+            });
+        }
+    }
+
+    /**
      * Sets up UI elements and event listeners for game state updates.
      */
     create() {

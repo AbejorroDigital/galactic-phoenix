@@ -161,4 +161,72 @@ export default class ExplosionEffect {
             });
         }
     }
+
+    /**
+     * Crea un destello de impacto en el punto de colisión
+     * @param {Phaser.Scene} scene - Escena actual
+     * @param {number} x - Posición X
+     * @param {number} y - Posición Y
+     * @param {string} damageType - Tipo de daño ('laser', 'plasma', 'fisico', 'ionico')
+     */
+    static createHitFlare(scene, x, y, damageType = 'fisico') {
+        if (!scene.textures.exists('flare')) {
+            console.warn('ExplosionEffect: Sprite "flare" no encontrado');
+            return;
+        }
+
+        // Mapeo de colores por tipo de daño
+        const damageColors = {
+            'laser': 0x00FFFF,     // Cyan
+            'plasma': 0xFF00FF,    // Magenta
+            'fisico': 0xFFFFFF,    // Blanco
+            'ionico': 0x00FF00     // Verde
+        };
+
+        const color = damageColors[damageType] || 0xFFFFFF;
+
+        // Destello principal
+        const flare = scene.add.sprite(x, y, 'flare')
+            .setScale(0.6)
+            .setAlpha(0.9)
+            .setTint(color)
+            .setBlendMode(Phaser.BlendModes.ADD)
+            .setDepth(35); // DEPTH.HIT_EFFECTS
+
+        scene.tweens.add({
+            targets: flare,
+            scale: 0.1,
+            alpha: 0,
+            duration: 300,
+            ease: 'Power2',
+            onComplete: () => flare.destroy()
+        });
+
+        // Partículas pequeñas alrededor
+        for (let i = 0; i < 4; i++) {
+            const angle = (Math.PI * 2 / 4) * i + Math.random() * 0.5;
+            const distance = 15;
+
+            const particle = scene.add.sprite(x, y, 'flare')
+                .setScale(0.2)
+                .setAlpha(0.7)
+                .setTint(color)
+                .setBlendMode(Phaser.BlendModes.ADD)
+                .setDepth(35);
+
+            const targetX = x + Math.cos(angle) * distance;
+            const targetY = y + Math.sin(angle) * distance;
+
+            scene.tweens.add({
+                targets: particle,
+                x: targetX,
+                y: targetY,
+                scale: 0,
+                alpha: 0,
+                duration: 250,
+                ease: 'Power2',
+                onComplete: () => particle.destroy()
+            });
+        }
+    }
 }

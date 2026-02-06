@@ -11,7 +11,7 @@
   },
   "shield_battery": {
     "type": "heal",
-    "amount": 100,
+    "amount": 300,
     "sprite": "powerup_orb",
     "tint": "0x00ffff",
     "display_name": "Shield Battery",

@@ -66,6 +66,9 @@ export default class Enemy extends Entity {
 
         // Base movement: ALWAYS to the left in a horizontal Shmup
         this.body.setVelocityX(-this.speed);
+
+        // Notificar al sistema de debug
+        this.scene.events.emit(EVENTS.ENTITY_SPAWNED, this);
     }
 
     /**
@@ -90,12 +93,47 @@ export default class Enemy extends Entity {
                     this.body.setVelocityY(-100);
                 }
                 break;
+            case 'pursuit':
+                // Smooth pursuit of player position
+                if (this.scene.player && this.scene.player.active) {
+                    const targetY = this.scene.player.y;
+                    const deltaY = targetY - this.y;
+                    const pursuitSpeed = 80;
+                    this.body.setVelocityY(Math.max(-pursuitSpeed, Math.min(pursuitSpeed, deltaY * 0.5)));
+                } else {
+                    this.body.setVelocityY(0);
+                }
+                break;
+            case 'burst_speed':
+                // Periodic speed bursts
+                const burstCycle = Math.floor(elapsed / 2000) % 2;
+                if (burstCycle === 0) {
+                    this.body.setVelocityX(-this.speed * 1.5); // Burst phase
+                } else {
+                    this.body.setVelocityX(-this.speed * 0.5); // Slow phase
+                }
+                this.body.setVelocityY(Math.sin(elapsed * 0.003) * 50);
+                break;
+            case 'circular':
+                // Circular/orbital movement
+                const radius = 80;
+                const angularSpeed = 0.002;
+                const centerY = 300; // Middle of screen
+                this.body.setVelocityY(Math.cos(elapsed * angularSpeed) * radius * angularSpeed * 1000);
+                break;
+            case 'wave_complex':
+                // Complex sinusoidal with variable amplitude
+                const amplitude = 100 + Math.sin(elapsed * 0.001) * 50;
+                this.body.setVelocityY(Math.sin(elapsed * 0.006) * amplitude);
+                break;
             default:
                 this.body.setVelocityY(0);
         }
 
-        // Keep horizontal movement consistent
-        this.body.setVelocityX(-this.speed);
+        // Keep horizontal movement consistent (unless overridden by burst_speed)
+        if (this.movementType !== 'burst_speed') {
+            this.body.setVelocityX(-this.speed);
+        }
 
         // Shooting logic
         if (time > this.fireTimer) {
@@ -135,6 +173,9 @@ export default class Enemy extends Entity {
         // Notificar destrucción para efectos y sonido
         this.scene.events.emit(EVENTS.ENEMY_DESTROYED, this.x, this.y, false);
 
+        // Notificar al sistema de debug
+        this.scene.events.emit(EVENTS.ENTITY_DESTROYED, this);
+
         // Probabilidad de PowerUp
         if (typeof this.scene.trySpawnPowerUp === 'function') {
             this.scene.trySpawnPowerUp(this.x, this.y);
@@ -149,6 +190,9 @@ export default class Enemy extends Entity {
      * Used for off-screen cleanup.
      */
     dieSilently() {
+        // Notificar al sistema de debug
+        this.scene.events.emit(EVENTS.ENTITY_DESTROYED, this);
+
         this.isDead = true;
         this.setActive(false);
         this.setVisible(false);
