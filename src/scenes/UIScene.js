@@ -2,161 +2,240 @@ import { EVENTS, SCENES } from '../core/Constants.js';
 
 /**
  * @class UIScene
- * @description Gestiona el HUD y los paneles de estado. 
- * Adaptado para leer la configuración de player.json y soportar ZenDots.
+ * @extends Phaser.Scene
+ * @description Handles the Heads-Up Display (HUD) and overlay panels.
+ * Manages the score display, health bar, lives, and weapon status.
+ * 
+ * @listens EVENTS.PLAYER_HIT
+ * @listens EVENTS.PLAYER_HEAL
+ * @listens EVENTS.SCORE_CHANGE
+ * @listens EVENTS.WEAPON_CHANGE
+ * @listens EVENTS.LIFE_CHANGE
+ * @listens EVENTS.LEVEL_FINISHED
+ * @listens EVENTS.GAME_OVER
  */
 export default class UIScene extends Phaser.Scene {
     constructor() {
         super(SCENES.UI);
+        /** @type {number} */
         this.score = 0;
     }
 
+    /**
+     * @param {Object} data - Initialization data.
+     * @param {boolean} [data.gameOver] - Whether to show Game Over immediately.
+     */
+    init(data) {
+        if (data && data.gameOver) {
+            this.events.once('create', () => {
+                this.showGameOverScreen();
+            });
+        }
+    }
+
+    /**
+     * Sets up UI elements and event listeners for game state updates.
+     */
     create() {
         const gameScene = this.scene.get(SCENES.GAME);
-        const playerData = this.cache.json.get('player')?.player;
 
-        // --- 1. ESTADO INICIAL ---
+        // UI Reset
         this.score = 0;
-        this.currentLives = playerData?.lives || 5;
+        this.lives = gameScene.lives || 3; // Get lives from GameScene
 
-        // --- 2. ELEMENTOS VISUALES (HUD) ---
-        // Contenedor de Salud
-        this.add.text(20, 35, 'HULL INTEGRITY', {
-            fontSize: '12px', fontFamily: 'ZenDots, monospace', color: '#00ffff'
-        });
+        /** @type {Phaser.GameObjects.Graphics} */
         this.healthBar = this.add.graphics();
-
-        // Texto de Score con estilo futurista
-        this.scoreText = this.add.text(20, 20, 'SCORE: 000000', {
-            fontSize: '22px', 
-            fontFamily: 'ZenDots, monospace', 
-            color: '#ffffff',
-            stroke: '#00fbff',
-            strokeThickness: 1
+        /** @type {Phaser.GameObjects.Text} */
+        this.scoreText = this.add.text(20, 20, 'SCORE: 0', {
+            fontSize: '20px', fontFamily: 'ZenDots', color: '#ffffff'
         });
 
-        // Vidas con color según la salud del sistema
-        this.livesText = this.add.text(20, 80, `LIVES: ${this.currentLives}`, {
-            fontSize: '18px', fontFamily: 'ZenDots, monospace', color: '#00ff00'
+        // Mostrar vidas
+        this.livesText = this.add.text(20, 80, 'LIVES: 3', {
+            fontSize: '18px', fontFamily: 'ZenDots', color: '#00ff00'
         });
 
-        // Luck y Weapon (Esquina superior derecha)
-        const luckValue = playerData?.luck || 15;
-        this.luckText = this.add.text(this.scale.width - 20, 45, `LUCK: ${luckValue}`, {
-            fontSize: '14px', fontFamily: 'ZenDots, monospace', color: '#00ff00'
-        }).setOrigin(1, 0);
+        // Powerup y Luck display (initially hidden for basic weapon)
+        this.powerupText = this.add.text(620, 20, '', {
+            fontSize: '16px', fontFamily: 'ZenDots', color: '#ffff00'
+        });
+        this.powerupText.setVisible(false);
 
-        this.powerupText = this.add.text(this.scale.width - 20, 20, '', {
-            fontSize: '16px', fontFamily: 'ZenDots, monospace', color: '#ffff00'
-        }).setOrigin(1, 0).setVisible(false);
+        this.luckText = this.add.text(620, 45, 'LUCK: 15', {
+            fontSize: '14px', fontFamily: 'ZenDots', color: '#00ff00'
+        });
 
-        // --- 3. PANELES DE ESTADO ---
         this.createVictoryPanel();
         this.createGameOverPanel();
 
-        // --- 4. LISTENERS (COMUNICACIÓN CON GAMESCENE) ---
-        gameScene.events.on(EVENTS.PLAYER_HIT, this.updateHealth, this);
-        gameScene.events.on(EVENTS.PLAYER_HEAL, this.updateHealth, this);
-        
+        // Listeners corregidos para recibir Objetos
+        gameScene.events.on(EVENTS.PLAYER_HIT, (data) => this.updateHealth(data), this);
+        gameScene.events.on(EVENTS.PLAYER_HEAL, (data) => this.updateHealth(data), this);
+
         gameScene.events.on(EVENTS.SCORE_CHANGE, (points) => {
             this.score += points;
-            this.scoreText.setText(`SCORE: ${this.score.toString().padStart(6, '0')}`);
+            this.scoreText.setText(`SCORE: ${this.score}`);
         }, this);
 
-        gameScene.events.on(EVENTS.WEAPON_CHANGE, this.updateWeapon, this);
-        gameScene.events.on(EVENTS.LIFE_CHANGE, this.updateLives, this);
+        // Listen to weapon changes
+        gameScene.events.on(EVENTS.WEAPON_CHANGE, (weaponName) => {
+            // Don't show "Basic Cannon" as it's the default weapon
+            if (weaponName && !weaponName.toLowerCase().includes('basic')) {
+                this.powerupText.setText(`WEAPON: ${weaponName}`);
+                this.powerupText.setVisible(true);
+            } else {
+                this.powerupText.setVisible(false);
+            }
+        }, this);
+
+        // Listen to life changes
+        gameScene.events.on(EVENTS.LIFE_CHANGE, (lives) => {
+            this.lives = lives;
+            this.livesText.setText(`LIVES: ${lives}`);
+        }, this);
+
+        // Update luck display (get from player)
+        if (gameScene.player && gameScene.player.stats) {
+            this.luckText.setText(`LUCK: ${gameScene.player.stats.luck || 15}`);
+        }
+
+        // CRITICAL FIX: Initialize healthbar with player's current HP
+        if (gameScene.player) {
+            this.updateHealth({
+                current: gameScene.player.hp || gameScene.player.maxHp,
+                max: gameScene.player.maxHp
+            });
+        }
 
         gameScene.events.on(EVENTS.LEVEL_FINISHED, this.showVictoryScreen, this);
         gameScene.events.on(EVENTS.GAME_OVER, this.showGameOverScreen, this);
-
-        // Inicializar barra de vida con datos de player.json
-        if (playerData) {
-            this.updateHealth({ current: playerData.hp, max: playerData.max_hp });
-        }
     }
 
+    /**
+     * Updates the health bar graphic based on player HP.
+     * @param {Object} data - HP information.
+     * @param {number} data.current - Current HP.
+     * @param {number} data.max - Maximum HP.
+     */
     updateHealth(data) {
         const { current, max } = data;
-        const percent = Phaser.Math.Clamp(current / max, 0, 1);
-        
         this.healthBar.clear();
+        const percent = Phaser.Math.Clamp(current / max, 0, 1);
 
-        // Glow effect (opcional, sombra de la barra)
-        this.healthBar.fillStyle(0x00ffff, 0.2);
-        this.healthBar.fillRect(18, 53, 204, 24);
+        // Fondo
+        this.healthBar.fillStyle(0x333333).fillRect(20, 50, 200, 20);
+        // Barra (Dinámica de color con gradiente)
+        let color;
+        if (percent > 0.6) color = 0x00ff00; // Verde
+        else if (percent > 0.3) color = 0xffff00; // Amarillo
+        else color = 0xff0000; // Rojo
 
-        // Fondo de la barra
-        this.healthBar.fillStyle(0x222222).fillRect(20, 55, 200, 20);
-
-        // Color dinámico (Cian -> Amarillo -> Rojo)
-        let color = 0x00ffff;
-        if (percent < 0.6) color = 0xffff00;
-        if (percent < 0.3) color = 0xff0000;
-
-        this.healthBar.fillStyle(color).fillRect(20, 55, 200 * percent, 20);
-        
-        // Brillo superior
-        this.healthBar.fillStyle(0xffffff, 0.3).fillRect(20, 55, 200 * percent, 5);
+        this.healthBar.fillStyle(color).fillRect(20, 50, 200 * percent, 20);
+        // Borde
+        this.healthBar.lineStyle(2, 0xffffff).strokeRect(20, 50, 200, 20);
     }
 
-    updateLives(lives) {
-        this.currentLives = lives;
-        this.livesText.setText(`LIVES: ${lives}`);
-        // Cambiar color si queda 1 vida
-        this.livesText.setColor(lives <= 1 ? '#ff0000' : '#00ff00');
-    }
-
-    updateWeapon(weaponName) {
-        if (weaponName && !weaponName.toLowerCase().includes('basic')) {
-            this.powerupText.setText(`SYSTEM: ${weaponName.toUpperCase()}`);
-            this.powerupText.setVisible(true);
-        } else {
-            this.powerupText.setVisible(false);
-        }
-    }
-
+    /**
+     * Creates the Level Complete container.
+     */
     createVictoryPanel() {
         const { width, height } = this.cameras.main;
+
         this.victoryPanel = this.add.container(0, 0).setDepth(100).setVisible(false);
-        
-        const bg = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.8);
-        const text = this.add.text(width/2, height/2, 'MISSION ACCOMPLISHED', {
-            fontSize: '40px', fontFamily: 'ZenDots, monospace', color: '#00ffff'
+
+        const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
+        const text = this.add.text(width / 2, height / 2, 'LEVEL COMPLETE', {
+            fontSize: '42px', fontFamily: 'ZenDots', color: '#00ff00'
         }).setOrigin(0.5);
 
         this.victoryPanel.add([bg, text]);
     }
 
+    /**
+     * Creates the Game Over screen with interactive return logic.
+     */
     createGameOverPanel() {
         const { width, height } = this.cameras.main;
+
         this.gameOverPanel = this.add.container(0, 0).setDepth(100).setVisible(false);
 
-        const bg = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
-        
-        this.add.text(width/2, height/2 - 50, 'SYSTEM FAILURE', {
-            fontSize: '50px', fontFamily: 'ZenDots, monospace', color: '#ff0000'
-        }).setOrigin(0.5).setParentContainer(this.gameOverPanel);
+        // Background image
+        const bgImage = this.add.image(width / 2, height / 2, 'bg_gameover');
+        bgImage.setDisplaySize(width, height);
 
-        this.finalScoreText = this.add.text(width/2, height/2 + 20, '', {
-            fontSize: '20px', fontFamily: 'ZenDots, monospace', color: '#ffffff'
-        }).setOrigin(0.5).setParentContainer(this.gameOverPanel);
+        // Dark overlay for readability
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.5);
 
-        const btn = this.add.text(width/2, height/2 + 100, 'REBOOT SYSTEM (RETURN TO MENU)', {
-            fontSize: '16px', fontFamily: 'ZenDots, monospace', color: '#00ffff'
-        }).setOrigin(0.5)
-          .setInteractive({ useHandCursor: true })
-          .on('pointerdown', () => {
-              this.scene.stop(SCENES.GAME);
-              this.scene.start(SCENES.MENU);
-          });
+        const text = this.add.text(width / 2, height / 2 - 40, 'GAME OVER', {
+            fontSize: '54px', fontFamily: 'ZenDots', color: '#ff0000',
+            stroke: '#000000', strokeThickness: 8
+        }).setOrigin(0.5);
 
-        this.gameOverPanel.add([bg, btn]);
+        const subText = this.add.text(width / 2, height / 2 + 40, 'Click to Return to Menu', {
+            fontSize: '20px', fontFamily: 'ZenDots', color: '#ffffff'
+        }).setOrigin(0.5);
+
+        // Score display
+        this.gameOverScoreText = this.add.text(width / 2, height / 2 + 100, '', {
+            fontSize: '18px', fontFamily: 'ZenDots', color: '#ffff00'
+        }).setOrigin(0.5);
+
+        this.gameOverPanel.add([bgImage, overlay, text, subText, this.gameOverScoreText]);
+
+        // Reiniciar al hacer click - FIXED: Go to menu instead of restart
+        overlay.setInteractive().on('pointerdown', () => {
+            if (this.gameOverPanel.visible) {
+                this.gameOverPanel.setVisible(false);
+
+                // Stop both scenes
+                this.scene.stop(SCENES.GAME);
+                this.scene.stop(SCENES.UI);
+
+                // Go to menu
+                this.scene.start(SCENES.MENU);
+            }
+        });
     }
 
-    showVictoryScreen() { this.victoryPanel.setVisible(true); }
+    /**
+     * Displays the victory overlay when a level is finished.
+     */
+    showVictoryScreen() {
+        this.victoryPanel.setVisible(true);
+    }
 
+    /**
+     * Displays the game over screen and updates the final score.
+     */
     showGameOverScreen() {
-        this.finalScoreText.setText(`TOTAL SCORE: ${this.score}`);
+        // Update final score
+        if (this.gameOverScoreText) {
+            this.gameOverScoreText.setText(`FINAL SCORE: ${this.score}`);
+        }
         this.gameOverPanel.setVisible(true);
+    }
+
+    /**
+     * Updates the lives display.
+     * @param {number} lives - Current lives count.
+     */
+    updateLives(lives) {
+        this.lives = lives;
+        if (this.livesText) {
+            this.livesText.setText(`LIVES: ${lives}`);
+        }
+    }
+
+    /**
+     * Updates the weapon display text.
+     * @param {string} weaponName - The name of the equipped weapon.
+     */
+    updateWeapon(weaponName) {
+        if (weaponName && !weaponName.toLowerCase().includes('basic')) {
+            this.powerupText.setText(`WEAPON: ${weaponName}`);
+            this.powerupText.setVisible(true);
+        } else {
+            this.powerupText.setVisible(false);
+        }
     }
 }

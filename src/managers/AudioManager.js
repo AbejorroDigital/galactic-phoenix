@@ -31,8 +31,9 @@ export default class AudioManager {
      * @param {number} [fadeDuration=1000] - Duración del efecto de desvanecimiento en milisegundos.
      */
     playMusic(key, loop = true, fadeDuration = 1000) {
-        // Si ya está sonando esta música, no hacer nada
+        // Loop Protection: Si ya está sonando esta música, no hacer nada
         if (this.currentMusic && this.currentMusic.key === key && this.currentMusic.isPlaying) {
+            console.log(`[AudioManager] Track '${key}' is already playing. Ignoring request.`);
             return;
         }
 
@@ -43,7 +44,10 @@ export default class AudioManager {
                 volume: 0,
                 duration: fadeDuration / 2,
                 onComplete: () => {
-                    this.currentMusic.stop();
+                    // Safety Check inside callback
+                    if (this.currentMusic) {
+                        this.currentMusic.stop();
+                    }
                     this.startNewMusic(key, loop, fadeDuration);
                 }
             });
@@ -86,17 +90,36 @@ export default class AudioManager {
      * @param {number} [fadeDuration=1000] - Duración del efecto de desvanecimiento en milisegundos.
      */
     stopMusic(fadeDuration = 1000) {
-        if (this.currentMusic && this.currentMusic.isPlaying) {
-            this.scene.tweens.add({
-                targets: this.currentMusic,
-                volume: 0,
-                duration: fadeDuration,
-                onComplete: () => {
-                    this.currentMusic.stop();
-                    this.currentMusic = null;
-                }
-            });
+        if (this.currentMusic) {
+            if (this.currentMusic.isPlaying) {
+                this.scene.tweens.add({
+                    targets: this.currentMusic,
+                    volume: 0,
+                    duration: fadeDuration,
+                    onComplete: () => {
+                        // Safety Check inside callback
+                        if (this.currentMusic) {
+                            this.currentMusic.stop();
+                            this.currentMusic = null;
+                        }
+                    }
+                });
+            } else {
+                this.currentMusic.stop();
+                this.currentMusic = null;
+            }
         }
+    }
+
+    /**
+     * Detiene todo el sonido inmediatamente.
+     */
+    stopAll() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+            this.currentMusic = null;
+        }
+        this.scene.sound.stopAll();
     }
 
     /**

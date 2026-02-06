@@ -161,6 +161,12 @@ export default class LevelManager {
             if (boss) {
                 boss.spawnBoss(stats);
 
+                // Emitir evento para que GameScene reproduzca audio
+                this.scene.events.emit('BOSS_SPAWNED', {
+                    bossId: eventConfig.bossId,
+                    bossName: stats.name
+                });
+
                 // NUEVO: Generar esbirros periódicamente durante la batalla del jefe
                 this.bossEnemySpawner = this.scene.time.addEvent({
                     delay: 5000, // Cada 5 segundos
